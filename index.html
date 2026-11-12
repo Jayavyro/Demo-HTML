@@ -16,9 +16,10 @@
     body {
       height: 100%;
       width: 100%;
-      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
       background: #ffffff;
       color: #0f172a;
+      overflow: hidden;
       -webkit-font-smoothing: antialiased;
     }
 
@@ -29,56 +30,149 @@
       width: 100vw;
     }
 
-    /* Simple Top Bar */
-    .topbar {
-      height: 64px;
-      flex: 0 0 64px;
-      display: flex;
+    /* ---------- Clean Centered Navbar ---------- */
+    .navbar {
+      height: 56px;
+      flex: 0 0 56px;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
       align-items: center;
-      justify-content: space-between;
-      padding: 0 40px;
+      padding: 0 28px;
       background: #ffffff;
       border-bottom: 1px solid #e2e8f0;
+      z-index: 30;
+      transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
     }
 
+    /* Adaptive dark navbar when a dark demo is active */
+    body.demo-active .navbar {
+      background: #070b19;
+      border-bottom-color: rgba(148, 163, 184, 0.16);
+    }
+
+    /* Left: Brand */
     .brand {
-      font-size: 16px;
-      font-weight: 600;
-      color: #0f172a;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
       text-decoration: none;
+      color: #0f172a;
+      font-size: 15px;
+      font-weight: 700;
       letter-spacing: -0.01em;
+      justify-self: start;
+      transition: color 0.2s ease;
     }
 
-    .nav-buttons {
-      display: flex;
+    body.demo-active .brand {
+      color: #f8fafc;
+    }
+
+    .brand-logo {
+      width: 26px;
+      height: 26px;
+      border-radius: 7px;
+      background: linear-gradient(135deg, #f97316, #ec4899 40%, #7c3aed 70%, #2563eb);
+      flex-shrink: 0;
+    }
+
+    /* Center: Segmented Pill Navigation */
+    .nav-pills {
+      display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 4px;
+      padding: 4px;
+      border-radius: 10px;
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      justify-self: center;
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+
+    body.demo-active .nav-pills {
+      background: rgba(15, 23, 42, 0.9);
+      border-color: rgba(148, 163, 184, 0.2);
     }
 
     .nav-btn {
-      padding: 8px 18px;
-      border-radius: 8px;
-      border: 1px solid transparent;
+      padding: 6px 14px;
+      border-radius: 7px;
+      border: 0;
       background: transparent;
       color: #475569;
       font: inherit;
-      font-size: 14px;
-      font-weight: 500;
+      font-size: 13px;
+      font-weight: 600;
       cursor: pointer;
-      transition: all 0.15s ease;
+      white-space: nowrap;
+      transition: all 0.16s ease;
     }
 
     .nav-btn:hover {
-      background: #f8fafc;
       color: #0f172a;
+      background: rgba(255, 255, 255, 0.6);
+    }
+
+    body.demo-active .nav-btn {
+      color: #94a3b8;
+    }
+
+    body.demo-active .nav-btn:hover {
+      color: #f8fafc;
+      background: rgba(51, 65, 85, 0.45);
     }
 
     .nav-btn.active {
       background: #0f172a;
       color: #ffffff;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
     }
 
-    /* Main Area */
+    body.demo-active .nav-btn.active {
+      background: #2563eb;
+      color: #ffffff;
+      box-shadow: 0 2px 10px rgba(37, 99, 235, 0.35);
+    }
+
+    /* Right: Minimal Action */
+    .nav-right {
+      justify-self: end;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      padding: 6px 12px;
+      border-radius: 7px;
+      border: 1px solid #e2e8f0;
+      background: #ffffff;
+      color: #475569;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.16s ease;
+    }
+
+    .icon-btn:hover {
+      color: #0f172a;
+      border-color: #cbd5e1;
+      background: #f8fafc;
+    }
+
+    body.demo-active .icon-btn {
+      background: rgba(30, 41, 59, 0.7);
+      border-color: rgba(148, 163, 184, 0.24);
+      color: #cbd5e1;
+    }
+
+    body.demo-active .icon-btn:hover {
+      background: rgba(51, 65, 85, 0.9);
+      color: #ffffff;
+    }
+
+    /* ---------- Main Content ---------- */
     .main {
       position: relative;
       flex: 1 1 auto;
@@ -87,17 +181,18 @@
       background: #ffffff;
     }
 
-    /* All Demos View — Lots of White Space */
+    /* All Demos View — Simple, Planar, Lots of White Space */
     .all-demos-view {
       position: absolute;
       inset: 0;
       overflow-y: auto;
       display: flex;
-       flex-direction: column;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 80px 40px;
+      padding: 60px 32px;
       background: #ffffff;
+      z-index: 2;
     }
 
     .all-demos-view.hidden {
@@ -106,22 +201,22 @@
 
     .hub-wrap {
       width: 100%;
-      max-width: 980px;
+      max-width: 1160px;
       text-align: center;
     }
 
     .hub-title {
-      font-size: 28px;
+      font-size: 26px;
       font-weight: 600;
       letter-spacing: -0.02em;
       color: #0f172a;
-      margin-bottom: 56px;
+      margin-bottom: 48px;
     }
 
     .cards {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 32px;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
     }
 
     .card {
@@ -129,13 +224,13 @@
       flex-direction: column;
       align-items: center;
       justify-content: space-between;
-      padding: 48px 32px;
+      padding: 40px 24px;
       border-radius: 12px;
       border: 1px solid #e2e8f0;
       background: #ffffff;
       cursor: pointer;
+      min-height: 220px;
       transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
-      min-height: 240px;
     }
 
     .card:hover {
@@ -149,27 +244,26 @@
       font-weight: 500;
       color: #94a3b8;
       letter-spacing: 0.06em;
-      text-transform: uppercase;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
 
     .card-name {
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 600;
       color: #0f172a;
-      margin-bottom: 36px;
+      margin-bottom: 30px;
       letter-spacing: -0.01em;
     }
 
     .show-btn {
       width: 100%;
-      padding: 12px 20px;
+      padding: 11px 16px;
       border-radius: 8px;
       border: 1px solid #0f172a;
       background: #ffffff;
       color: #0f172a;
       font: inherit;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 500;
       cursor: pointer;
       transition: all 0.15s ease;
@@ -184,12 +278,16 @@
     .player-view {
       position: absolute;
       inset: 0;
-      display: none;
-      background: #ffffff;
+      background: #050814;
+      visibility: hidden;
+      opacity: 0;
+      pointer-events: none;
     }
 
     .player-view.active {
-      display: block;
+      visibility: visible;
+      opacity: 1;
+      pointer-events: auto;
     }
 
     .demo-frame {
@@ -198,26 +296,49 @@
       width: 100%;
       height: 100%;
       border: 0;
-      display: none;
+      visibility: hidden;
+      opacity: 0;
+      pointer-events: none;
     }
 
     .demo-frame.active {
-      display: block;
+      visibility: visible;
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    @media (max-width: 1024px) {
+      .cards {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+      }
     }
 
     @media (max-width: 820px) {
-      .topbar {
-        padding: 0 20px;
+      .navbar {
+        grid-template-columns: auto 1fr;
+        gap: 12px;
+        padding: 0 16px;
+      }
+
+      .nav-right {
+        display: none;
+      }
+
+      .nav-pills {
+        justify-self: end;
+        overflow-x: auto;
+        max-width: 100%;
       }
 
       .all-demos-view {
         justify-content: flex-start;
-        padding: 48px 20px;
+        padding: 40px 16px;
       }
 
       .cards {
         grid-template-columns: 1fr;
-        gap: 20px;
+        gap: 16px;
       }
     }
   </style>
@@ -225,15 +346,23 @@
 
 <body>
   <div class="app">
-    <header class="topbar">
-      <a href="#all" class="brand" id="homeLink">Avyro</a>
+    <header class="navbar">
+      <a href="#all" class="brand" id="homeLink">
+        <span class="brand-logo" aria-hidden="true"></span>
+        <span>Avyro</span>
+      </a>
 
-      <nav class="nav-buttons" aria-label="Demos">
+      <nav class="nav-pills" aria-label="Demos">
         <button class="nav-btn active" type="button" data-demo="all">All Demos</button>
         <button class="nav-btn" type="button" data-demo="crm">CRM</button>
         <button class="nav-btn" type="button" data-demo="pm">Project Management</button>
         <button class="nav-btn" type="button" data-demo="billing">Billing</button>
+        <button class="nav-btn" type="button" data-demo="team">Team Productivity</button>
       </nav>
+
+      <div class="nav-right">
+        <button class="icon-btn" type="button" id="fullscreenBtn">Fullscreen</button>
+      </div>
     </header>
 
     <main class="main">
@@ -266,6 +395,14 @@
               </div>
               <button class="show-btn" type="button" data-demo="billing">Show Demo</button>
             </div>
+
+            <div class="card" data-demo="team" tabindex="0" role="button">
+              <div>
+                <div class="card-number">04</div>
+                <div class="card-name">Team Productivity</div>
+              </div>
+              <button class="show-btn" type="button" data-demo="team">Show Demo</button>
+            </div>
           </div>
         </div>
       </section>
@@ -275,6 +412,7 @@
         <iframe class="demo-frame" id="frame-crm" data-src="CRM/crm-demo.html" title="CRM Demo" allow="fullscreen"></iframe>
         <iframe class="demo-frame" id="frame-pm" data-src="Project%20Management/index.html" title="Project Management Demo" allow="fullscreen"></iframe>
         <iframe class="demo-frame" id="frame-billing" data-src="Billing/billing-demo.html" title="Billing Demo" allow="fullscreen"></iframe>
+        <iframe class="demo-frame" id="frame-team" data-src="Team%20Productivity/team-productivity-demo.html" title="Team Productivity Demo" allow="fullscreen"></iframe>
       </section>
     </main>
   </div>
@@ -286,21 +424,25 @@
       const allDemosView = document.getElementById("allDemosView");
       const playerView = document.getElementById("playerView");
       const navButtons = document.querySelectorAll(".nav-btn");
+      const fullscreenBtn = document.getElementById("fullscreenBtn");
       const frames = {
         crm: document.getElementById("frame-crm"),
         pm: document.getElementById("frame-pm"),
-        billing: document.getElementById("frame-billing")
+        billing: document.getElementById("frame-billing"),
+        team: document.getElementById("frame-team")
       };
 
       let activeDemo = "all";
 
-      function showDemo(key) {
+      function showDemo(key, updateHash = true) {
         if (!frames[key]) key = "all";
         activeDemo = key;
 
         navButtons.forEach((btn) => {
           btn.classList.toggle("active", btn.dataset.demo === key);
         });
+
+        document.body.classList.toggle("demo-active", key !== "all");
 
         if (key === "all") {
           allDemosView.classList.remove("hidden");
@@ -315,16 +457,24 @@
                 frame.setAttribute("src", frame.getAttribute("data-src"));
               }
               frame.classList.add("active");
-              setTimeout(() => {
+              requestAnimationFrame(() => {
                 try {
+                  frame.contentWindow?.dispatchEvent(new Event("resize"));
                   frame.focus();
                   frame.contentWindow?.focus();
                 } catch (_) {}
-              }, 50);
+              });
             } else {
               frame.classList.remove("active");
             }
           });
+        }
+
+        if (updateHash) {
+          const hash = key === "all" ? "#all" : "#" + key;
+          if (location.hash !== hash) {
+            history.replaceState(null, "", hash);
+          }
         }
       }
 
@@ -338,6 +488,26 @@
       document.getElementById("homeLink").addEventListener("click", (e) => {
         e.preventDefault();
         showDemo("all");
+      });
+
+      window.addEventListener("load", () => {
+        const hash = (location.hash || "").replace("#", "").toLowerCase();
+        if (hash && (hash === "all" || frames[hash])) {
+          showDemo(hash, false);
+        }
+      });
+
+      window.addEventListener("hashchange", () => {
+        const hash = (location.hash || "").replace("#", "").toLowerCase();
+        showDemo(hash || "all", false);
+      });
+
+      fullscreenBtn.addEventListener("click", () => {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen?.();
+        } else {
+          document.exitFullscreen?.();
+        }
       });
 
       window.addEventListener("keydown", (e) => {

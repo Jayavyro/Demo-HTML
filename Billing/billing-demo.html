@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -657,11 +657,13 @@
             <p>View the converted Maple Grove Housing Project in Billing &amp; Invoice, activate its billing plan, and
               manage milestones on the Billing Workplan &amp; Gantt schedule.</p>
             <div class="flow">
-              <span>Converted Project (Maple Grove)</span>
+              <span>Converted Project</span>
               <span>Activate Billing Plan</span>
               <span>Billing Workplan &amp; Gantt</span>
               <span>Billing &amp; Invoices</span>
               <span>Fill Invoice Details</span>
+              <span>Service Insights</span>
+              <span>Bank &amp; Timesheet</span>
               <span>Preview &amp; Send for Approval</span>
             </div>
             <button class="btn btn-primary" id="startBtn" type="button">Start Billing demo →</button>
@@ -707,6 +709,13 @@
           crop: 48,
           url: "demo.avyro.in/dashboard/billing-&-invoice/projects/3734?tab=billing&action=generate-invoice"
         },
+        billingInsight: {
+          src: DIR + "Insight.png",
+          w: 1915,
+          h: 994,
+          crop: 48,
+          url: "demo.avyro.in/dashboard/billing-&-invoice/projects/3734?tab=billing&action=generate-invoice&insight=service"
+        },
         billingForm2: {
           src: DIR + "Form 2.png",
           w: 1917,
@@ -731,16 +740,16 @@
         {
           screen: "billingMain",
           tag: "Billing · Projects",
-          title: "Converted Project: Maple Grove Housing Project",
-          body: "Maple Grove Housing Project (PR125AVYRO.999) appears under Billing → Projects. Click Activate Billing Plan to configure its billing schedule.",
+          title: "Maple Grove Housing Project",
+          body: "View the converted project under Billing and click Activate Billing Plan.",
           points: [
-            "1. Billing Tabs & Status Filters (All, Upcoming, Ongoing, On-hold)",
-            "2. Maple Grove Housing Project (Retainer · MaterialWorks NYC · On-Time)",
-            "3. Click Activate Billing Plan to open the Billing Workplan"
+            "1. Billing tabs & status filters",
+            "2. Maple Grove Housing Project (Retainer · On-Time)",
+            "3. Click Activate Billing Plan"
           ],
           holes: [
-            { x: 84, y: 97, w: 1810, h: 80, n: 1, label: "Billing Navigation & Status Filters", markerX: 96, markerY: 86 },
-            { x: 699, y: 197, w: 590, h: 339, n: 2, label: "Converted Project: Maple Grove Housing Project", markerX: 705, markerY: 184 },
+            { x: 84, y: 97, w: 1810, h: 80, n: 1, label: "Billing Tabs & Filters", markerX: 96, markerY: 86 },
+            { x: 699, y: 197, w: 590, h: 339, n: 2, label: "Maple Grove Housing Project", markerX: 705, markerY: 184 },
             { x: 1164, y: 505, w: 116, h: 25, n: 3, label: "Activate Billing Plan", markerX: 965, markerY: 518 }
           ],
           pulses: [
@@ -750,7 +759,7 @@
             { x: 699, y: 197, w: 590, h: 339, title: "Open Maple Grove Housing Project Billing Workplan" },
             { x: 1164, y: 505, w: 116, h: 25, title: "Click Activate Billing Plan" }
           ],
-          callout: { x: 1320, y: 220, w: 325 },
+          callout: { x: 1320, y: 220, w: 285 },
           cursor: { x: 990, y: 360 },
           nextLabel: "Activate Billing Plan",
           next: async () => { await moveTo(1222, 518); await click(); }
@@ -761,16 +770,16 @@
           screen: "billingWorkplan",
           tag: "Billing Workplan",
           title: "Billing Timeline & Schedule",
-          body: "Track project billing milestones across the Gantt timeline and schedule, then click the Billing tab to view generated invoices.",
+          body: "Track milestones on the Gantt chart and schedule, then open the Billing tab.",
           points: [
-            "1. Workplan Tab: Billing schedule & CRM workplan views",
-            "2. Billing Timeline — Gantt View (BM-001 CD to BM-004 Programming)",
-            "3. Billing Schedule & Event Timeline → Click Billing tab"
+            "1. Workplan & Billing tabs",
+            "2. Gantt Timeline (BM-001 to BM-004)",
+            "3. Billing Schedule → Click Billing tab"
           ],
           holes: [
             { x: 84, y: 100, w: 1824, h: 120, n: 1, label: "Workplan & Billing Tabs", markerX: 96, markerY: 88 },
-            { x: 84, y: 241, w: 1824, h: 306, n: 2, label: "Billing Timeline — Gantt View (BM-001 to BM-004)", markerX: 96, markerY: 230 },
-            { x: 84, y: 566, w: 1824, h: 351, n: 3, label: "Billing Schedule & Event Timeline", markerX: 96, markerY: 556 }
+            { x: 84, y: 241, w: 1824, h: 306, n: 2, label: "Billing Timeline (Gantt View)", markerX: 96, markerY: 230 },
+            { x: 84, y: 566, w: 1824, h: 351, n: 3, label: "Billing Schedule & Events", markerX: 96, markerY: 556 }
           ],
           pulses: [
             { x: 338, y: 146, w: 54, h: 28 }
@@ -778,7 +787,7 @@
           hotspots: [
             { x: 338, y: 146, w: 54, h: 28, title: "Click Billing tab" }
           ],
-          callout: { x: 1320, y: 108, w: 330 },
+          callout: { x: 1320, y: 108, w: 285 },
           cursor: { x: 640, y: 380 },
           nextLabel: "Open Billing Tab",
           next: async () => { await moveTo(365, 160); await click(); }
@@ -788,16 +797,16 @@
         {
           screen: "billingTab",
           tag: "Billing & Invoices",
-          title: "Project Invoices, KPIs & Consultants",
-          body: "Monitor total invoiced, collected, overdue, and pending balances, then click + Generate Invoice to create a new milestone invoice.",
+          title: "Invoices, KPIs & Consultants",
+          body: "Review invoiced and pending balances, then click + Generate Invoice.",
           points: [
-            "1. Billing KPIs: $278,733.32 Invoiced · $139,366.66 Overdue & Pending",
-            "2. Invoices (2): IN4AVYRO (Overdue) & IN5AVYRO (Draft)",
-            "3. Click + Generate Invoice at the top-right"
+            "1. KPIs: $278.7K Invoiced · $139.3K Pending",
+            "2. Invoices (IN4AVYRO & IN5AVYRO)",
+            "3. Click + Generate Invoice"
           ],
           holes: [
-            { x: 84, y: 201, w: 1824, h: 77, n: 1, label: "Billing KPIs (Total Invoiced, Collected, Overdue & Pending)", markerX: 96, markerY: 189 },
-            { x: 84, y: 296, w: 1824, h: 143, n: 2, label: "Invoices (IN4AVYRO & IN5AVYRO) + Generate Invoice", markerX: 96, markerY: 288 },
+            { x: 84, y: 201, w: 1824, h: 77, n: 1, label: "Billing KPIs", markerX: 96, markerY: 189 },
+            { x: 84, y: 296, w: 1824, h: 143, n: 2, label: "Invoices & + Generate Invoice", markerX: 96, markerY: 288 },
             { x: 84, y: 460, w: 1824, h: 90, n: 3, label: "Consultants Billing", markerX: 96, markerY: 452 }
           ],
           pulses: [
@@ -806,7 +815,7 @@
           hotspots: [
             { x: 1788, y: 296, w: 120, h: 30, title: "Click + Generate Invoice" }
           ],
-          callout: { x: 1320, y: 580, w: 335 },
+          callout: { x: 1320, y: 580, w: 285 },
           cursor: { x: 1720, y: 365 },
           nextLabel: "+ Generate Invoice",
           next: async () => { await moveTo(1848, 311); await click(); }
@@ -815,38 +824,72 @@
         /* 4. Generate Invoice Modal – Fill Details (Billing form.png) */
         {
           screen: "billingForm",
-          tag: "Generate Invoice · Part 1",
-          title: "Fill Invoice Details & Services Billing",
-          body: "Select the billing milestone, verify PM & PIC assignments, and enter billable service hours and rates before scrolling down to Bank & Timesheet details.",
+          tag: "Generate Invoice · 1",
+          title: "Invoice Details & Services",
+          body: "Select the milestone, verify PM/PIC, and enter billable service hours.",
           points: [
-            "1. Milestone (BM-001 — CD), Issue/Due Dates & Project Team (Tony Stark & Matthew Mason)",
-            "2. Services Billing: 2,791.8 Hrs @ $48/hr = $134,006.40 Subtotal",
-            "3. Consultants, Reimbursables & Invoice Summary"
+            "1. Milestone (BM-001) & Project Team",
+            "2. Services: 2,791.8 Hrs @ $48/hr ($134K)",
+            "3. Click Insight to review service hours"
           ],
           holes: [
-            { x: 400, y: 178, w: 1118, h: 274, n: 1, label: "Invoice Details, Milestone & Project Team", markerX: 412, markerY: 162 },
-            { x: 400, y: 464, w: 1118, h: 176, n: 2, label: "Services Billing ($134,006.40 Subtotal)", markerX: 412, markerY: 454 },
-            { x: 400, y: 652, w: 1118, h: 228, n: 3, label: "Consultants, Reimbursables & Summary", markerX: 412, markerY: 644 }
+            { x: 400, y: 178, w: 1118, h: 274, n: 1, label: "Invoice Details & Team", markerX: 412, markerY: 162 },
+            { x: 400, y: 464, w: 1118, h: 176, n: 2, label: "Services Billing ($134,006.40)", markerX: 412, markerY: 454 },
+            { x: 804, y: 254, w: 66, h: 32, n: 3, label: "Insight", markerX: 640, markerY: 270 }
           ],
-          callout: { x: 1552, y: 260, w: 335 },
+          pulses: [
+            { x: 804, y: 254, w: 66, h: 32 }
+          ],
+          hotspots: [
+            { x: 804, y: 254, w: 66, h: 32, title: "Click Insight" }
+          ],
+          callout: { x: 1552, y: 260, w: 285 },
           cursor: { x: 1100, y: 565 },
-          nextLabel: "Next: Bank & Timesheet"
+          nextLabel: "Open Insight",
+          next: async () => { await moveTo(837, 270); await click(); }
+        },
+
+        /* 4b. Existing Service Insights modal (Insight.png) */
+        {
+          screen: "billingInsight",
+          tag: "Service Insight",
+          title: "Existing Service Insights",
+          body: "Compare budgeted, allocated and logged hours before billing, then close the insight.",
+          points: [
+            "1. Budgeted 3,100 · Logged 3,036 hrs",
+            "2. Hours by role & employee",
+            "3. Click Close to return"
+          ],
+          holes: [
+            { x: 698, y: 165, w: 874, h: 145, n: 1, label: "Service Period Summary", markerX: 710, markerY: 153 },
+            { x: 698, y: 326, w: 874, h: 312, n: 2, label: "Hours by Role & Employee", markerX: 710, markerY: 314 }
+          ],
+          pulses: [
+            { x: 1510, y: 98, w: 62, h: 26 }
+          ],
+          hotspots: [
+            { x: 1510, y: 98, w: 62, h: 26, title: "Click Close" }
+          ],
+          callout: { x: 1608, y: 260, w: 285 },
+          cursor: { x: 1130, y: 480 },
+          nextLabel: "Close Insight",
+          next: async () => { await moveTo(1541, 111); await click(); }
         },
 
         /* 5. Generate Invoice Modal – Bank Details, Timesheet Annexure & Preview (Form 2.png) */
         {
           screen: "billingForm2",
-          tag: "Generate Invoice · Part 2",
-          title: "Bank Details, Timesheet Annexure & Preview",
-          body: "Complete Bank Details and attach the Timesheet Annexure, then click Preview Invoice → to proceed to step 2.",
+          tag: "Generate Invoice · 2",
+          title: "Bank, Timesheet & Preview",
+          body: "Add bank details and attach the timesheet annexure, then click Preview Invoice.",
           points: [
-            "1. Bank Details (US Basis): Account Name, Bank Name, Account & Routing #",
-            "2. Attach Timesheet Annexure: 80.00 Total Hours @ $50/hr ($4,000.00)",
-            "3. Click Preview Invoice → once all details are complete"
+            "1. Bank Details (Account & Routing #)",
+            "2. Timesheet Annexure (80 Hrs · $4,000)",
+            "3. Click Preview Invoice →"
           ],
           holes: [
-            { x: 400, y: 255, w: 1118, h: 232, n: 1, label: "Bank Details (Account, Bank & Routing #)", markerX: 412, markerY: 243 },
-            { x: 400, y: 499, w: 1118, h: 348, n: 2, label: "Attach Timesheet Annexure & Billable Hours Layout", markerX: 412, markerY: 489 },
+            { x: 400, y: 255, w: 1118, h: 232, n: 1, label: "Bank Details", markerX: 412, markerY: 243 },
+            { x: 400, y: 499, w: 1118, h: 348, n: 2, label: "Timesheet Annexure", markerX: 412, markerY: 489 },
             { x: 1295, y: 891, w: 224, h: 34, n: 3, label: "Preview Invoice →", markerX: 1110, markerY: 908 }
           ],
           pulses: [
@@ -855,32 +898,32 @@
           hotspots: [
             { x: 1389, y: 893, w: 128, h: 30, title: "Click Preview Invoice →" }
           ],
-          callout: { x: 1552, y: 260, w: 335 },
+          callout: { x: 1552, y: 260, w: 285 },
           cursor: { x: 1050, y: 680 },
           nextLabel: "Preview Invoice",
           next: async () => { await moveTo(1453, 908); await click(); }
         },
 
-        /* 6. Generate Invoice Modal – Step 2 Preview (Preview.png) */
+        /* 6. Generate Invoice – Step 2 Preview (Preview.png) */
         {
           screen: "billingPreview",
           tag: "Invoice Preview",
-          title: "Review 2-Page PDF Preview & Send for Approval",
-          body: "Inspect the formatted Invoice PDF (with Timesheet Annexure on page 2) and click Send for Approval → to route the invoice.",
+          title: "PDF Preview & Approval",
+          body: "Review the 2-page Invoice PDF and click Send for Approval.",
           points: [
-            "1. Step 2 · Preview (Draft #256 · IN7AVYRO)",
-            "2. 2-Page PDF Preview: $4,000.00 + 4% Tax ($160.00) = $4,160.00 Total",
-            "3. Click Send for Approval → (or Save as Draft)"
+            "1. Step 2 · Preview (IN7AVYRO)",
+            "2. PDF Preview ($4,160.00 Total w/ Tax)",
+            "3. Click Send for Approval →"
           ],
           holes: [
-            { x: 392, y: 115, w: 1135, h: 55, n: 1, label: "Step 2 · Preview (Draft #256 · IN7AVYRO)", markerX: 404, markerY: 102 },
-            { x: 590, y: 215, w: 727, h: 657, n: 2, label: "2-Page PDF Preview ($4,160.00 Total + Timesheet Annexure)", markerX: 600, markerY: 200 },
+            { x: 392, y: 115, w: 1135, h: 55, n: 1, label: "Step 2 · Preview", markerX: 404, markerY: 102 },
+            { x: 590, y: 215, w: 727, h: 657, n: 2, label: "2-Page PDF Preview ($4,160.00)", markerX: 600, markerY: 200 },
             { x: 1178, y: 893, w: 342, h: 35, n: 3, label: "Send for Approval →", markerX: 985, markerY: 910 }
           ],
           pulses: [
             { x: 1387, y: 896, w: 130, h: 30 }
           ],
-          callout: { x: 1552, y: 260, w: 335 },
+          callout: { x: 1552, y: 260, w: 285 },
           cursor: { x: 1150, y: 620 },
           nextLabel: "Restart demo",
           restart: true
