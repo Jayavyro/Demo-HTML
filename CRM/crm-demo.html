@@ -1,0 +1,2347 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Avyro – End-to-End CRM Walkthrough Demo</title>
+  <style>
+    :root {
+      --brand: #2563eb;
+      --brand-2: #7c3aed;
+      --ink: #0f172a;
+      --muted: #475569;
+      --bg: #0b1020;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      height: 100%;
+    }
+
+    body {
+      font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+      background:
+        radial-gradient(900px 520px at 14% 8%, rgba(37, 99, 235, .18), transparent 64%),
+        radial-gradient(760px 460px at 88% 92%, rgba(16, 185, 129, .12), transparent 68%),
+        #050814;
+      color: #e2e8f0;
+      overflow: hidden;
+    }
+
+    /* ---------- Top bar ---------- */
+    .topbar {
+      position: fixed;
+      left: 50%;
+      bottom: 16px;
+      z-index: 100;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 10px 8px 14px;
+      gap: 14px;
+      min-height: 46px;
+      border: 1px solid rgba(148, 163, 184, .24);
+      border-radius: 16px;
+      background: rgba(9, 14, 31, .82);
+      box-shadow: 0 18px 48px rgba(0, 0, 0, .38);
+      backdrop-filter: blur(18px);
+    }
+
+    .brand {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      letter-spacing: .2px;
+    }
+
+    .brand-logo {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #f97316, #ec4899 40%, var(--brand-2) 70%, var(--brand));
+    }
+
+    .brand small {
+      display: block;
+      font-weight: 500;
+      color: #94a3b8;
+      font-size: 12px;
+    }
+
+    .progress {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #334155;
+      border: 0;
+      padding: 0;
+      cursor: pointer;
+      transition: all .3s;
+    }
+
+    .dot.done {
+      background: #64748b;
+    }
+
+    .dot.active {
+      background: var(--brand);
+      width: 28px;
+      border-radius: 6px;
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, .14);
+    }
+
+    .step-label {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .05em;
+      color: #cbd5e1;
+      min-width: 116px;
+      text-align: left;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .present-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      min-height: 30px;
+      padding: 0 11px;
+      border: 1px solid rgba(148, 163, 184, .3);
+      border-radius: 9px;
+      background: rgba(30, 41, 59, .78);
+      color: #e2e8f0;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .present-btn:hover {
+      background: #1e3a8a;
+      border-color: #3b82f6;
+    }
+
+    .present-btn:focus-visible {
+      outline: 3px solid rgba(147, 197, 253, .9);
+      outline-offset: 2px;
+    }
+
+    /* ---------- Stage ---------- */
+    .viewport {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px 22px 76px;
+      min-height: 0;
+    }
+
+    .frame {
+      border: 1px solid rgba(148, 163, 184, .22);
+      border-radius: 18px;
+      overflow: hidden;
+      background: #fff;
+      box-shadow:
+        0 34px 90px rgba(0, 0, 0, .58),
+        0 0 0 1px rgba(255, 255, 255, .035),
+        0 0 72px rgba(37, 99, 235, .08);
+    }
+
+    .chrome {
+      height: 34px;
+      background: #eef2f7;
+      border-bottom: 1px solid #dbe3ee;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 14px;
+    }
+
+    .chrome i {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .chrome i:nth-child(1) {
+      background: #f87171;
+    }
+
+    .chrome i:nth-child(2) {
+      background: #fbbf24;
+    }
+
+    .chrome i:nth-child(3) {
+      background: #34d399;
+    }
+
+    .url {
+      margin-left: 14px;
+      flex: 1;
+      max-width: 700px;
+      height: 22px;
+      border-radius: 11px;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      color: #475569;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+    }
+
+    .stage {
+      position: relative;
+      overflow: hidden;
+      container-type: inline-size;
+      background: #fff;
+    }
+
+    .screen {
+      position: absolute;
+      inset: 0;
+    }
+
+    .screen img {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    /* ---------- Story Visual Canvas (High-Animation, Minimal-Text) ---------- */
+    .story-canvas {
+      position: absolute;
+      inset: 0;
+      display: none;
+      background:
+        radial-gradient(circle at 18% 35%, rgba(37, 99, 235, 0.28), transparent 42%),
+        radial-gradient(circle at 52% 55%, rgba(124, 58, 237, 0.24), transparent 45%),
+        radial-gradient(circle at 82% 38%, rgba(16, 185, 129, 0.22), transparent 42%),
+        linear-gradient(135deg, #070b16 0%, #0f172a 55%, #091526 100%);
+      color: #fff;
+      overflow: hidden;
+      user-select: none;
+      padding: 3.2cqw 3.6cqw;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .story-canvas.active {
+      display: flex;
+    }
+
+    /* Animated grid floor */
+    .story-grid-bg {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(148, 163, 184, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(148, 163, 184, 0.06) 1px, transparent 1px);
+      background-size: 3.2cqw 3.2cqw;
+      mask-image: radial-gradient(ellipse at 45% 50%, black 35%, transparent 80%);
+      pointer-events: none;
+    }
+
+    .story-header {
+      position: relative;
+      z-index: 2;
+      max-width: 68%;
+      animation: fadeSlideDown .5s ease-out both;
+    }
+
+    .story-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: .45cqw;
+      padding: .3cqw .85cqw;
+      border-radius: 999px;
+      background: rgba(59, 130, 246, 0.16);
+      border: 1px solid rgba(96, 165, 250, 0.4);
+      color: #93c5fd;
+      font-size: max(10px, .72cqw);
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .story-pill .live-dot {
+      width: .5cqw;
+      height: .5cqw;
+      min-width: 6px;
+      min-height: 6px;
+      border-radius: 50%;
+      background: #38bdf8;
+      box-shadow: 0 0 10px #38bdf8;
+      animation: blinkDot 1.4s ease-in-out infinite;
+    }
+
+    .story-header h2 {
+      margin: .45cqw 0 .2cqw;
+      font-size: clamp(18px, 1.95cqw, 36px);
+      font-weight: 800;
+      letter-spacing: -.02em;
+      background: linear-gradient(90deg, #fff 20%, #93c5fd 70%, #6ee7b7 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .story-header p {
+      margin: 0;
+      color: #94a3b8;
+      font-size: clamp(11px, .88cqw, 16px);
+    }
+
+    /* 3-Step Animated Visual Stage (Left ~74% width so right side stays clear for callout) */
+    .journey-stage {
+      position: relative;
+      z-index: 2;
+      width: 73%;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 1cqw 0;
+    }
+
+    .j-node {
+      position: relative;
+      width: 28%;
+      background: rgba(15, 23, 42, 0.78);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 1.3cqw;
+      padding: 1.5cqw 1.2cqw;
+      text-align: center;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+      animation: cardRise .65s cubic-bezier(.2, .8, .2, 1) both;
+    }
+
+    .j-node:nth-child(1) {
+      border-color: rgba(59, 130, 246, 0.5);
+      animation-delay: .08s;
+    }
+
+    .j-node:nth-child(3) {
+      border-color: rgba(139, 92, 246, 0.55);
+      animation-delay: .22s;
+    }
+
+    .j-node:nth-child(5) {
+      border-color: rgba(16, 185, 129, 0.55);
+      animation-delay: .36s;
+    }
+
+    .j-step-badge {
+      position: absolute;
+      top: -.75cqw;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: .22cqw .75cqw;
+      border-radius: 999px;
+      font-size: max(9px, .64cqw);
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: #fff;
+      white-space: nowrap;
+    }
+
+    .j-visual {
+      height: 11.5cqw;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    /* Animated Orbit & Avatar */
+    .avatar-ring {
+      position: relative;
+      width: 7.2cqw;
+      height: 7.2cqw;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #1d4ed8, #0f172a 75%);
+      border: 2px solid #60a5fa;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 0 30px rgba(59, 130, 246, 0.4);
+      animation: floatBob 3s ease-in-out infinite;
+    }
+
+    .avatar-ring::before {
+      content: "";
+      position: absolute;
+      inset: -.6cqw;
+      border-radius: 50%;
+      border: 1.5px dashed rgba(96, 165, 250, 0.5);
+      animation: spinSlow 12s linear infinite;
+    }
+
+    .avatar-ring svg,
+    .j-visual svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .floating-tag {
+      position: absolute;
+      bottom: .4cqw;
+      right: .8cqw;
+      background: linear-gradient(135deg, #f59e0b, #ea580c);
+      color: #fff;
+      font-size: max(8px, .6cqw);
+      font-weight: 800;
+      padding: .2cqw .55cqw;
+      border-radius: 999px;
+      box-shadow: 0 6px 16px rgba(245, 158, 11, 0.45);
+      animation: pulseBadge 1.8s ease-in-out infinite;
+    }
+
+    /* Animated Connector Stream between Nodes */
+    .j-connector {
+      flex: 1;
+      height: .28cqw;
+      min-height: 3px;
+      background: rgba(148, 163, 184, 0.18);
+      position: relative;
+      margin: 0 .6cqw;
+      border-radius: 999px;
+      overflow: visible;
+    }
+
+    .j-connector::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 2.2cqw;
+      height: .42cqw;
+      min-height: 5px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, transparent, #60a5fa, #fff);
+      box-shadow: 0 0 14px #60a5fa;
+      transform: translateY(-50%);
+      animation: streamMove 2s cubic-bezier(.4, 0, .2, 1) infinite;
+    }
+
+    .j-connector.green::after {
+      background: linear-gradient(90deg, transparent, #34d399, #fff);
+      box-shadow: 0 0 14px #34d399;
+      animation-delay: .9s;
+    }
+
+    .j-travel-icon {
+      position: absolute;
+      top: -1.6cqw;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: max(12px, 1.1cqw);
+      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+      animation: bounceIcon 1.8s ease-in-out infinite;
+    }
+
+    .j-title {
+      font-size: clamp(12px, 1.05cqw, 19px);
+      font-weight: 700;
+      margin: .3cqw 0 .2cqw;
+      color: #f8fafc;
+    }
+
+    .j-sub {
+      font-size: clamp(9.5px, .72cqw, 13.5px);
+      color: #94a3b8;
+      margin: 0 0 .75cqw;
+    }
+
+    .j-chip-row {
+      display: flex;
+      justify-content: center;
+      gap: .4cqw;
+      flex-wrap: wrap;
+    }
+
+    .j-mini-chip {
+      font-size: max(8.5px, .64cqw);
+      font-weight: 600;
+      padding: .22cqw .6cqw;
+      border-radius: 999px;
+      background: rgba(30, 41, 59, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      color: #e2e8f0;
+    }
+
+    /* Expo Booth Scene (Scene 6) */
+    .expo-stage {
+      position: relative;
+      z-index: 2;
+      width: 72%;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.4cqw;
+      margin: 1cqw 0;
+    }
+
+    .expo-booth-card {
+      flex: 1.15;
+      background: rgba(15, 23, 42, 0.82);
+      border: 1.5px solid rgba(139, 92, 246, 0.5);
+      border-radius: 1.4cqw;
+      padding: 1.4cqw;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+      animation: cardRise .55s ease-out both;
+    }
+
+    .booth-banner {
+      background: linear-gradient(90deg, #2563eb, #7c3aed);
+      border-radius: .7cqw;
+      padding: .45cqw .9cqw;
+      font-size: max(10px, .76cqw);
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-align: center;
+      margin-bottom: 1.2cqw;
+      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+    }
+
+    .booth-people {
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: .8cqw 0;
+      position: relative;
+    }
+
+    .person-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .4cqw;
+    }
+
+    .person-orb {
+      width: 5.8cqw;
+      height: 5.8cqw;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      position: relative;
+      animation: floatBob 2.8s ease-in-out infinite;
+    }
+
+    .person-orb.tony {
+      background: radial-gradient(circle at 30% 30%, #3b82f6, #1e3a8a);
+      border: 2px solid #93c5fd;
+      box-shadow: 0 0 25px rgba(59, 130, 246, 0.45);
+    }
+
+    .person-orb.client {
+      background: radial-gradient(circle at 30% 30%, #10b981, #064e3b);
+      border: 2px solid #6ee7b7;
+      box-shadow: 0 0 25px rgba(16, 185, 129, 0.45);
+      animation-delay: .7s;
+    }
+
+    .speech-pill {
+      background: rgba(30, 41, 59, 0.95);
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      padding: .28cqw .65cqw;
+      border-radius: 999px;
+      font-size: max(8.5px, .64cqw);
+      color: #e2e8f0;
+      font-weight: 600;
+      animation: pulseBadge 2.2s ease-in-out infinite;
+    }
+
+    .handshake-hub {
+      position: relative;
+      width: 4.2cqw;
+      height: 4.2cqw;
+      border-radius: 50%;
+      background: rgba(245, 158, 11, 0.18);
+      border: 2px solid #fbbf24;
+      display: grid;
+      place-items: center;
+      font-size: max(16px, 1.5cqw);
+      box-shadow: 0 0 28px rgba(245, 158, 11, 0.5);
+      animation: pulseBadge 1.5s ease-in-out infinite;
+    }
+
+    .handshake-hub::after {
+      content: "";
+      position: absolute;
+      inset: -.6cqw;
+      border-radius: 50%;
+      border: 2px solid rgba(251, 191, 36, 0.45);
+      animation: rippleRing 1.8s ease-out infinite;
+    }
+
+    /* Flying Lead Card Animation */
+    .lead-beam {
+      width: 5.5cqw;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .4cqw;
+      position: relative;
+    }
+
+    .flying-card {
+      padding: .35cqw .65cqw;
+      background: linear-gradient(135deg, #10b981, #059669);
+      border-radius: .5cqw;
+      font-size: max(8px, .62cqw);
+      font-weight: 800;
+      color: #fff;
+      white-space: nowrap;
+      box-shadow: 0 8px 20px rgba(16, 185, 129, 0.5);
+      animation: flyRight 1.8s ease-in-out infinite;
+    }
+
+    .lead-captured-card {
+      flex: 1;
+      background: rgba(15, 23, 42, 0.86);
+      border: 2px solid #10b981;
+      border-radius: 1.4cqw;
+      padding: 1.4cqw;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5), 0 0 35px rgba(16, 185, 129, 0.2);
+      animation: cardRise .65s .15s ease-out both;
+    }
+
+    .lead-preview-box {
+      background: rgba(30, 41, 59, 0.85);
+      border: 1px solid rgba(52, 211, 153, 0.35);
+      border-radius: 1cqw;
+      padding: 1cqw;
+      margin-top: .7cqw;
+      position: relative;
+    }
+
+    /* Keyframes */
+    @keyframes fadeSlideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-12px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes cardRise {
+      from {
+        opacity: 0;
+        transform: translateY(22px) scale(0.96);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes floatBob {
+
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-8px);
+      }
+    }
+
+    @keyframes spinSlow {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes pulseBadge {
+
+      0%,
+      100% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(1.07);
+      }
+    }
+
+    @keyframes streamMove {
+      0% {
+        left: -10%;
+        opacity: 0;
+      }
+
+      30% {
+        opacity: 1;
+      }
+
+      70% {
+        opacity: 1;
+      }
+
+      100% {
+        left: 85%;
+        opacity: 0;
+      }
+    }
+
+    @keyframes bounceIcon {
+
+      0%,
+      100% {
+        transform: translate(-50%, 0);
+      }
+
+      50% {
+        transform: translate(-50%, -5px);
+      }
+    }
+
+    @keyframes blinkDot {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 0.35;
+        transform: scale(0.8);
+      }
+    }
+
+    @keyframes rippleRing {
+      0% {
+        transform: scale(0.85);
+        opacity: 0.9;
+      }
+
+      100% {
+        transform: scale(1.45);
+        opacity: 0;
+      }
+    }
+
+    @keyframes flyRight {
+
+      0%,
+      100% {
+        transform: translateX(-6px);
+      }
+
+      50% {
+        transform: translateX(8px);
+      }
+    }
+
+    /* ---------- Overlay layers ---------- */
+    .dim {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .dim .outline {
+      fill: none;
+      stroke: var(--brand);
+      stroke-width: 2.5;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .layer>* {
+      pointer-events: auto;
+    }
+
+    .pulse {
+      position: absolute;
+      border: 2.5px solid #f59e0b;
+      border-radius: 8px;
+      animation: pulse 1.6s ease-out infinite;
+      pointer-events: none;
+    }
+
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(245, 158, 11, .7);
+      }
+
+      100% {
+        box-shadow: 0 0 0 1.2cqw rgba(245, 158, 11, 0);
+      }
+    }
+
+    .hotspot {
+      position: absolute;
+      cursor: pointer;
+      border-radius: 8px;
+      background: rgba(37, 99, 235, 0);
+      transition: background .2s;
+    }
+
+    .hotspot:hover {
+      background: rgba(37, 99, 235, .12);
+    }
+
+    .marker {
+      position: absolute;
+      transform: translate(0, -50%);
+      display: flex;
+      align-items: center;
+      gap: .4cqw;
+      pointer-events: none;
+      animation: pop .35s ease-out both;
+    }
+
+    .marker b {
+      width: 1.55cqw;
+      height: 1.55cqw;
+      min-width: 19px;
+      min-height: 19px;
+      border-radius: 50%;
+      background: var(--brand);
+      color: #fff;
+      font-size: max(10px, .78cqw);
+      display: grid;
+      place-items: center;
+      box-shadow: 0 0 0 3px #fff, 0 4px 10px rgba(0, 0, 0, .3);
+    }
+
+    .marker span {
+      background: var(--ink);
+      color: #fff;
+      font-size: max(10px, .7cqw);
+      font-weight: 600;
+      padding: .22cqw .55cqw;
+      border-radius: 999px;
+      white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, .25);
+    }
+
+    @keyframes pop {
+      from {
+        opacity: 0;
+        transform: translate(0, -50%) scale(.6);
+      }
+    }
+
+    .note-above {
+      position: absolute;
+      transform: translate(-50%, -115%);
+      background: var(--ink);
+      color: #fff;
+      font-size: max(10px, .72cqw);
+      font-weight: 600;
+      padding: .35cqw .75cqw;
+      border-radius: .5cqw;
+      white-space: nowrap;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, .3);
+      border: 1.5px solid #3b82f6;
+      pointer-events: none;
+      animation: popNote .35s ease-out both;
+    }
+
+    .note-above::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -6px;
+      transform: translateX(-50%);
+      border-width: 6px 6px 0 6px;
+      border-style: solid;
+      border-color: var(--ink) transparent transparent transparent;
+    }
+
+    @keyframes popNote {
+      from {
+        opacity: 0;
+        transform: translate(-50%, -100%) scale(.85);
+      }
+    }
+
+    /* ---------- Ultra-compact, easy-to-read callout ---------- */
+    .callout {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.98);
+      color: var(--ink);
+      backdrop-filter: blur(8px);
+      border-radius: .65cqw;
+      padding: .55cqw .75cqw .5cqw;
+      box-shadow: 0 14px 34px rgba(15, 23, 42, .22), 0 0 0 1px rgba(15, 23, 42, .08);
+      font-size: clamp(9.5px, .65cqw, 12px);
+      line-height: 1.28;
+      animation: calloutIn .3s cubic-bezier(.2, .8, .2, 1) both;
+      border-top: .2cqw solid var(--brand);
+    }
+
+    @keyframes calloutIn {
+      from {
+        opacity: 0;
+        transform: translateY(.6cqw) scale(.98);
+      }
+    }
+
+    .callout .tag {
+      display: inline-flex;
+      align-items: center;
+      font-size: .7em;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--brand);
+      background: #eff6ff;
+      padding: .15em .55em;
+      border-radius: 999px;
+    }
+
+    .callout h3 {
+      margin: .3em 0 .15em;
+      font-size: 1.15em;
+      line-height: 1.2;
+      font-weight: 700;
+    }
+
+    .callout p {
+      margin: 0 0 .35em;
+      color: var(--muted);
+    }
+
+    .callout ul {
+      margin: 0 0 .48em;
+      padding: 0;
+      list-style: none;
+    }
+
+    .callout li {
+      position: relative;
+      padding-left: 1.15em;
+      margin: .12em 0;
+      color: #334155;
+      font-weight: 500;
+    }
+
+    .callout li::before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      top: 0;
+      color: #16a34a;
+      font-weight: 700;
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .5em;
+      border-top: 1px solid #e2e8f0;
+      padding-top: .48em;
+    }
+
+    .actions .count {
+      color: #94a3b8;
+      font-size: .82em;
+    }
+
+    .btns {
+      display: flex;
+      gap: .4em;
+    }
+
+    .btn {
+      font: inherit;
+      font-size: .9em;
+      font-weight: 600;
+      border-radius: .5em;
+      padding: .4em .85em;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: transform .15s, box-shadow .15s, background .15s;
+    }
+
+    .btn:focus-visible {
+      outline: 3px solid #93c5fd;
+      outline-offset: 2px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--brand), var(--brand-2));
+      color: #fff;
+      box-shadow: 0 6px 16px rgba(37, 99, 235, .32);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 22px rgba(37, 99, 235, .42);
+    }
+
+    .btn-ghost {
+      background: #fff;
+      color: #334155;
+      border-color: #cbd5e1;
+    }
+
+    .btn-ghost:hover {
+      background: #f8fafc;
+    }
+
+    .btn[disabled] {
+      opacity: .5;
+      cursor: default;
+      transform: none;
+    }
+
+    /* ---------- Cursor ---------- */
+    .cursor {
+      position: absolute;
+      width: 1.5cqw;
+      min-width: 18px;
+      z-index: 50;
+      pointer-events: none;
+      transform-origin: 0 0;
+      filter: drop-shadow(0 3px 4px rgba(0, 0, 0, .35));
+    }
+
+    .cursor svg {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .ripple {
+      position: absolute;
+      width: 3cqw;
+      height: 3cqw;
+      border-radius: 50%;
+      z-index: 49;
+      border: 3px solid var(--brand);
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    /* ---------- Intro ---------- */
+    .intro {
+      position: absolute;
+      inset: 0;
+      z-index: 60;
+      display: grid;
+      place-items: center;
+      background: rgba(15, 23, 42, .45);
+      backdrop-filter: blur(4px);
+    }
+
+    .intro-card {
+      background: #fff;
+      color: var(--ink);
+      border-radius: 1.2cqw;
+      padding: 2cqw 2.4cqw;
+      width: 48%;
+      text-align: center;
+      font-size: clamp(11px, .9cqw, 16.5px);
+      box-shadow: 0 30px 80px rgba(0, 0, 0, .4);
+    }
+
+    .intro-card h1 {
+      font-size: 1.85em;
+      margin: .3em 0 .25em;
+      line-height: 1.2;
+    }
+
+    .intro-card p {
+      color: var(--muted);
+      margin: 0 0 1.1em;
+    }
+
+    .flow {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: .4em;
+      margin-bottom: 1.3em;
+    }
+
+    .flow span {
+      font-size: .76em;
+      background: #f1f5f9;
+      color: #334155;
+      padding: .32em .68em;
+      border-radius: 999px;
+    }
+
+    .flow span+span::before {
+      content: "→ ";
+      color: #94a3b8;
+    }
+
+    .hint {
+      display: none;
+    }
+
+    kbd {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-size: 11px;
+    }
+
+    @media (max-width: 760px) {
+      .viewport {
+        padding: 10px 10px 68px;
+      }
+
+      .topbar {
+        bottom: 10px;
+        gap: 9px;
+        max-width: calc(100vw - 20px);
+      }
+
+      .step-label {
+        display: none;
+      }
+
+      .present-btn span:last-child {
+        display: none;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+      *,
+      *::before,
+      *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-logo" aria-hidden="true"></div>
+      <div>Avyro<small>CRM · Marketing Events, Leads, Opportunities, Work Plan &amp; Proposals</small></div>
+    </div>
+    <nav class="progress" id="progress" aria-label="Demo steps"></nav>
+    <div class="step-label" id="stepLabel" aria-live="polite"></div>
+    <button class="present-btn" id="fullScreenBtn" type="button" title="Toggle full screen (F)">
+      <span aria-hidden="true">⛶</span><span>Present</span>
+    </button>
+  </header>
+
+  <main class="viewport" id="viewport">
+    <div class="frame" id="frame">
+      <div class="chrome" aria-hidden="true"><i></i><i></i><i></i>
+        <div class="url" id="url">demo.avyro.in/dashboard/crm/marketing</div>
+      </div>
+      <div class="stage" id="stage">
+        <div class="screen" id="screen"><img id="shot" alt="" /></div>
+        <div class="story-canvas" id="storyCanvas"></div>
+        <div class="layer" id="fakeLayer"></div>
+        <svg class="dim" id="dim" preserveAspectRatio="none" aria-hidden="true"></svg>
+        <div class="layer" id="markLayer"></div>
+        <div class="layer" id="calloutLayer"></div>
+        <div class="cursor" id="cursor" aria-hidden="true">
+          <svg viewBox="0 0 24 32">
+            <path d="M2 2 L2 26 L8.5 20 L13 30 L17 28.2 L12.6 18.6 L21.5 18.6 Z" fill="#0f172a" stroke="#fff"
+              stroke-width="2" stroke-linejoin="round" />
+          </svg>
+        </div>
+        <div class="intro" id="intro">
+          <div class="intro-card">
+            <span class="tag" style="color:#2563eb;font-weight:700;font-size:.78em;letter-spacing:.08em;">CRM
+              WALKTHROUGH</span>
+            <h1>End-to-End CRM Pipeline Walkthrough</h1>
+            <p>Track marketing events, capture &amp; qualify leads, convert to opportunities, build work plans with
+              resource planning, and upload proposals.</p>
+            <div class="flow">
+              <span>Marketing Event</span>
+              <span>Capture Lead</span>
+              <span>Tasks, Meetings &amp; Emails</span>
+              <span>Convert to Opportunity</span>
+              <span>Work Plan &amp; Phases</span>
+              <span>PIC Approval</span>
+              <span>Upload Proposal</span>
+            </div>
+            <button class="btn btn-primary" id="startBtn" type="button">Start CRM demo →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <div class="hint">Use <kbd>→</kbd> / <kbd>Space</kbd> for next, <kbd>←</kbd> for back, <kbd>R</kbd> to restart</div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const DIR = "CRM Images/";
+
+      /* ------------------------------------------------------------------
+       * Animated Story Visuals (Minimal text, rich motion, zero SVG bug)
+       * ------------------------------------------------------------------ */
+      const STORY_EVENT_JOURNEY_HTML = `
+        <div class="story-grid-bg"></div>
+
+        <div class="story-header">
+          <span class="story-pill"><span class="live-dot"></span>Event-to-Lead Journey</span>
+          <h2>Attending an Industry Expo to Generate CRM Leads</h2>
+          <p>Tony Stark registers an upcoming Architecture Expo, attends in person, and logs hot leads into Avyro CRM.</p>
+        </div>
+
+        <div class="journey-stage">
+          <!-- Node 1: Register Event -->
+          <div class="j-node">
+            <span class="j-step-badge" style="background:linear-gradient(135deg,#2563eb,#1d4ed8);">1 · Register</span>
+            <div class="j-visual">
+              <div class="avatar-ring">
+                <svg viewBox="0 0 80 80" width="68%" height="68%">
+                  <circle cx="40" cy="28" r="14" fill="#fde68a"/>
+                  <path d="M26 24 Q40 12 54 24" fill="#0f172a"/>
+                  <rect x="29" y="25" width="9" height="6" rx="1.5" fill="none" stroke="#0f172a" stroke-width="2"/>
+                  <rect x="42" y="25" width="9" height="6" rx="1.5" fill="none" stroke="#0f172a" stroke-width="2"/>
+                  <line x1="38" y1="28" x2="42" y2="28" stroke="#0f172a" stroke-width="2"/>
+                  <path d="M18 66 C18 45 62 45 62 66 Z" fill="#3b82f6"/>
+                  <rect x="33" y="52" width="14" height="10" rx="2" fill="#fff"/>
+                </svg>
+              </div>
+              <span class="floating-tag">VIP PASS</span>
+            </div>
+            <div class="j-title">Tony Stark</div>
+            <div class="j-sub">Logs event in Marketing</div>
+            <div class="j-chip-row">
+              <span class="j-mini-chip" style="border-color:rgba(96,165,250,0.4);color:#93c5fd;">Planned</span>
+              <span class="j-mini-chip" style="border-color:rgba(167,139,250,0.4);color:#c4b5fd;">Registered</span>
+              <span class="j-mini-chip" style="border-color:rgba(52,211,153,0.4);color:#6ee7b7;">Attended</span>
+              <span class="j-mini-chip" style="border-color:rgba(248,113,113,0.4);color:#fca5a5;">Cancelled</span>
+            </div>
+          </div>
+
+          <div class="j-connector">
+            <span class="j-travel-icon">✈️</span>
+          </div>
+
+          <!-- Node 2: Attend Expo -->
+          <div class="j-node">
+            <span class="j-step-badge" style="background:linear-gradient(135deg,#7c3aed,#6d28d9);">2 · Attend Expo</span>
+            <div class="j-visual">
+              <div class="avatar-ring" style="border-color:#a78bfa;background:radial-gradient(circle at 30% 30%,#5b21b6,#0f172a 75%);box-shadow:0 0 30px rgba(139,92,246,0.4);animation-delay:.4s;">
+                <svg viewBox="0 0 80 80" width="68%" height="68%">
+                  <rect x="14" y="18" width="52" height="12" rx="4" fill="#a78bfa"/>
+                  <rect x="18" y="30" width="6" height="32" fill="#c4b5fd"/>
+                  <rect x="56" y="30" width="6" height="32" fill="#c4b5fd"/>
+                  <circle cx="32" cy="44" r="7" fill="#fde68a"/>
+                  <circle cx="48" cy="44" r="7" fill="#6ee7b7"/>
+                  <path d="M23 62 C23 52 39 52 39 62 Z" fill="#3b82f6"/>
+                  <path d="M41 62 C41 52 57 52 57 62 Z" fill="#10b981"/>
+                </svg>
+              </div>
+              <span class="floating-tag" style="background:linear-gradient(135deg,#8b5cf6,#ec4899);">BOOTH #402</span>
+            </div>
+            <div class="j-title">Architecture Expo</div>
+            <div class="j-sub">Meets AEC prospects</div>
+            <div class="j-chip-row">
+              <span class="j-mini-chip">🏛️ Javits Center</span>
+              <span class="j-mini-chip">🤝 Networking</span>
+            </div>
+          </div>
+
+          <div class="j-connector green">
+            <span class="j-travel-icon">⚡</span>
+          </div>
+
+          <!-- Node 3: Capture Lead -->
+          <div class="j-node">
+            <span class="j-step-badge" style="background:linear-gradient(135deg,#10b981,#059669);">3 · CRM Lead</span>
+            <div class="j-visual">
+              <div class="avatar-ring" style="border-color:#34d399;background:radial-gradient(circle at 30% 30%,#047857,#0f172a 75%);box-shadow:0 0 30px rgba(16,185,129,0.45);animation-delay:.8s;">
+                <svg viewBox="0 0 80 80" width="68%" height="68%">
+                  <rect x="16" y="22" width="48" height="36" rx="6" fill="#065f46" stroke="#6ee7b7" stroke-width="2.5"/>
+                  <circle cx="30" cy="36" r="6" fill="#fde68a"/>
+                  <rect x="40" y="31" width="18" height="4" rx="2" fill="#fff"/>
+                  <rect x="40" y="39" width="12" height="3" rx="1.5" fill="#6ee7b7"/>
+                  <rect x="24" y="47" width="32" height="5" rx="2.5" fill="#10b981"/>
+                </svg>
+              </div>
+              <span class="floating-tag" style="background:linear-gradient(135deg,#10b981,#059669);">+ HOT LEAD</span>
+            </div>
+            <div class="j-title">Lead Captured</div>
+            <div class="j-sub">Added to CRM Pipeline</div>
+            <div class="j-chip-row">
+              <span class="j-mini-chip">🔥 Hot Lead</span>
+              <span class="j-mini-chip">📈 65.4% Conv.</span>
+            </div>
+          </div>
+        </div>
+      `;
+
+      const STORY_LEAD_GENERATED_HTML = `
+        <div class="story-grid-bg"></div>
+
+        <div class="story-header">
+          <span class="story-pill" style="background:rgba(16,185,129,0.16);border-color:rgba(52,211,153,0.45);color:#6ee7b7;">
+            <span class="live-dot" style="background:#34d399;box-shadow:0 0 10px #34d399;"></span>Live at Architecture Expo · NYC
+          </span>
+          <h2>Event Attended → New Lead Generated!</h2>
+          <p>Tony networks with prospects at the expo booth and captures a hot lead for Avyro CRM.</p>
+        </div>
+
+        <div class="expo-stage">
+          <!-- Left: Live Expo Booth Networking -->
+          <div class="expo-booth-card">
+            <div class="booth-banner">🏛️ ARCHITECTURE EXPO 2027 · JAVITS CENTER BOOTH</div>
+            <div class="booth-people">
+              <div class="person-col">
+                <div class="speech-pill">"Let's collaborate on BIM!"</div>
+                <div class="person-orb tony">
+                  <svg viewBox="0 0 64 64" width="66%" height="66%">
+                    <circle cx="32" cy="22" r="11" fill="#fde68a"/>
+                    <path d="M16 54 C16 36 48 36 48 54 Z" fill="#60a5fa"/>
+                  </svg>
+                </div>
+                <div class="j-title" style="font-size:max(11px,.92cqw);">Tony Stark</div>
+                <div class="j-sub" style="margin:0;">Architect · Avyro</div>
+              </div>
+
+              <div class="handshake-hub">🤝</div>
+
+              <div class="person-col">
+                <div class="speech-pill" style="border-color:rgba(52,211,153,0.45);color:#a7f3d0;">"Here's my card!"</div>
+                <div class="person-orb client">
+                  <svg viewBox="0 0 64 64" width="66%" height="66%">
+                    <circle cx="32" cy="22" r="11" fill="#fed7aa"/>
+                    <path d="M16 54 C16 36 48 36 48 54 Z" fill="#34d399"/>
+                  </svg>
+                </div>
+                <div class="j-title" style="font-size:max(11px,.92cqw);">Michael Anderson</div>
+                <div class="j-sub" style="margin:0;">Skyline Architecture Studio</div>
+              </div>
+            </div>
+            <div class="j-chip-row" style="margin-top:.6cqw;">
+              <span class="j-mini-chip" style="border-color:rgba(52,211,153,0.4);color:#6ee7b7;">✓ Event Status: Attended</span>
+              <span class="j-mini-chip">📇 Contact Card Collected</span>
+            </div>
+          </div>
+
+          <!-- Animated Flying Lead Card -->
+          <div class="lead-beam">
+            <div class="flying-card">📇 LEAD →</div>
+            <div class="j-connector green" style="width:100%;margin:.4cqw 0;"></div>
+          </div>
+
+          <!-- Right: Captured CRM Lead Card -->
+          <div class="lead-captured-card">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span class="j-mini-chip" style="background:#065f46;border-color:#34d399;color:#a7f3d0;">NEW CRM LEAD</span>
+              <span class="j-mini-chip" style="background:#fef3c7;color:#d97706;border:0;font-weight:800;">Fresh Lead</span>
+            </div>
+            <div class="lead-preview-box">
+              <div class="j-title" style="margin:0 0 .15cqw;">Michael Anderson</div>
+              <div class="j-sub" style="margin:0 0 .6cqw;">Skyline Architecture Studio · New York</div>
+              <div class="j-chip-row" style="justify-content:flex-start;">
+                <span class="j-mini-chip" style="color:#fbbf24;border-color:rgba(251,191,36,0.4);">⦿ Hot · 75%</span>
+                <span class="j-mini-chip" style="color:#93c5fd;border-color:rgba(96,165,250,0.4);">🎟️ Architecture Expo 2027</span>
+              </div>
+            </div>
+            <div class="j-sub" style="margin:.75cqw 0 0;color:#6ee7b7;font-weight:600;text-align:center;">
+              → Ready to enter in CRM Leads
+            </div>
+          </div>
+        </div>
+      `;
+
+      const SCREENS = {
+        storyJourney: {
+          storyHtml: STORY_EVENT_JOURNEY_HTML,
+          w: 1917,
+          h: 921,
+          crop: 0,
+          url: "demo.avyro.in/crm/event-to-lead-story"
+        },
+        eventMain: {
+          src: DIR + "Event Main.png",
+          w: 1917,
+          h: 921,
+          crop: 0,
+          url: "demo.avyro.in/dashboard/crm/marketing"
+        },
+        eventUnfilled: {
+          src: DIR + "Event Main unfilled.png",
+          w: 1917,
+          h: 918,
+          crop: 0,
+          url: "demo.avyro.in/dashboard/crm/marketing/add-event"
+        },
+        eventFilled: {
+          src: DIR + "Event Name Filled.png",
+          w: 1917,
+          h: 913,
+          crop: 0,
+          url: "demo.avyro.in/dashboard/crm/marketing/add-event"
+        },
+        leadsMain: {
+          src: DIR + "Leads Main.png",
+          w: 1912,
+          h: 917,
+          crop: 0,
+          url: "demo.avyro.in/dashboard/crm/leads"
+        },
+        leadsFilled1: {
+          src: DIR + "Leads Filled 1st.png",
+          w: 1917,
+          h: 917,
+          crop: 0,
+          url: "demo.avyro.in/dashboard/crm/leads/add-lead"
+        },
+        leadsFilled2: {
+          src: DIR + "Leads Filled 2nd.png",
+          w: 1917,
+          h: 911,
+          crop: 0,
+          url: "demo.avyro.in/dashboard/crm/leads/add-lead"
+        },
+        leadCreated: {
+          src: DIR + "Lead Created.png",
+          w: 1917,
+          h: 920,
+          crop: 0,
+          url: "demo.avyro.in/dashboard/crm/leads"
+        },
+        leadsDetails: {
+          src: DIR + "Leads Details.png",
+          w: 1917,
+          h: 921,
+          crop: 0,
+          url: "demo.avyro.in/dashboard/crm/leads/lead-info"
+        },
+        createTask: {
+          src: DIR + "Create task.png",
+          w: 1917,
+          h: 920,
+          crop: 0,
+          url: "demo.avyro.in/dashboard/crm/leads/lead-info/add-task"
+        },
+        createMeeting: {
+          src: DIR + "Create Meating.png",
+          w: 1917,
+          h: 922,
+          crop: 0,
+          url: "demo.avyro.in/dashboard/crm/leads/lead-info/add-meeting"
+        },
+        mtLeads: {
+          src: DIR + "M&T leads.png",
+          w: 1917,
+          h: 920,
+          crop: 0,
+          url: "demo.avyro.in/dashboard/crm/leads/lead-info"
+        },
+        eaLeads: {
+          src: DIR + "E&A Leads.png",
+          w: 1917,
+          h: 917,
+          crop: 0,
+          url: "demo.avyro.in/dashboard/crm/leads/lead-info"
+        },
+        leadToOpportunity: {
+          src: DIR + "Lead to opputunity.png",
+          w: 1917,
+          h: 917,
+          crop: 0,
+          url: "demo.avyro.in/dashboard/crm/leads/lead-info"
+        },
+        opportunityCombined: {
+          src: DIR + "combined.png",
+          w: 1915,
+          h: 994,
+          crop: 48,
+          url: "demo.avyro.in/dashboard/crm/opportunities/opportunity-info/work-plan"
+        },
+        opportunityCombinedPlanning: {
+          src: DIR + "Combined-planning.png",
+          w: 1914,
+          h: 996,
+          crop: 48,
+          url: "demo.avyro.in/dashboard/crm/opportunities/opportunity-info/work-plan"
+        },
+        ltoForm: {
+          src: DIR + "lto form.png",
+          w: 1917,
+          h: 917,
+          crop: 0,
+          url: "demo.avyro.in/dashboard/crm/leads/lead-info/convert-to-opportunity"
+        },
+        opportunityMain: {
+          src: DIR + "Opputunity Main.png",
+          w: 1917,
+          h: 917,
+          crop: 0,
+          url: "demo.avyro.in/dashboard/crm/opportunities"
+        },
+        opportunityDetails: {
+          src: DIR + "Oppurtunity_details.png",
+          w: 1917,
+          h: 918,
+          crop: 0,
+          url: "demo.avyro.in/dashboard/crm/opportunities/opportunity-info"
+        },
+        opportunityFilled1: {
+          src: DIR + "opputunity filled 1st.png",
+          w: 1917,
+          h: 921,
+          crop: 0,
+          url: "demo.avyro.in/dashboard/crm/opportunities/opportunity-info"
+        },
+        opportunityFeat: {
+          src: DIR + "OpportunityFeat.png",
+          w: 1917,
+          h: 920,
+          crop: 0,
+          url: "demo.avyro.in/dashboard/crm/opportunities/opportunity-info"
+        },
+        opportunityWorkplan1: {
+          src: DIR + "Opportunity_workplan 1.png",
+          w: 1917,
+          h: 912,
+          crop: 0,
+          url: "demo.avyro.in/dashboard/crm/opportunities/opportunity-info/work-plan"
+        },
+        opportunityTimelinePhases: {
+          src: DIR + "CRM Timeline_ Construction Documents Through October.png",
+          w: 1819,
+          h: 865,
+          crop: 0,
+          url: "demo.avyro.in/dashboard/crm/opportunities/opportunity-info/work-plan"
+        },
+        opportunityPlanning: {
+          src: DIR + "Planning.png",
+          w: 1917,
+          h: 916,
+          crop: 0,
+          url: "demo.avyro.in/dashboard/crm/opportunities/opportunity-info/work-plan"
+        },
+        opportunitySendApproval: {
+          src: DIR + "Send for approval oopurtuntyu.png",
+          w: 1917,
+          h: 915,
+          crop: 0,
+          url: "demo.avyro.in/dashboard/crm/opportunities/opportunity-info/work-plan"
+        },
+        opportunityChangeStatus: {
+          src: DIR + "Change status.png",
+          w: 1917,
+          h: 917,
+          crop: 0,
+          url: "demo.avyro.in/dashboard/crm/opportunities/opportunity-info/work-plan"
+        },
+        proposalMain: {
+          src: DIR + "Proposal Main.png",
+          w: 1917,
+          h: 921,
+          crop: 0,
+          url: "demo.avyro.in/dashboard/crm/proposals"
+        },
+        proposalCreate: {
+          src: DIR + "Proposal-create.png",
+          w: 1915,
+          h: 1000,
+          crop: 48,
+          url: "demo.avyro.in/dashboard/crm/proposals/edit-proposal"
+        },
+        sendForSign: {
+          src: DIR + "send-for-sign.png",
+          w: 1915,
+          h: 945,
+          crop: 0,
+          url: "demo.avyro.in/dashboard/crm/proposals/proposal-info"
+        },
+        sendDrawer: {
+          src: DIR + "drawer.png",
+          w: 1917,
+          h: 997,
+          crop: 48,
+          url: "demo.avyro.in/dashboard/crm/proposals/proposal-info"
+        },
+        projectInfo: {
+          src: DIR + "Project-info.png",
+          w: 1915,
+          h: 994,
+          crop: 48,
+          url: "demo.avyro.in/dashboard/projects/project-info"
+        },
+        projectDirectory: {
+          src: DIR + "Directory.png",
+          w: 1911,
+          h: 994,
+          crop: 48,
+          url: "demo.avyro.in/dashboard/projects/project-info"
+        },
+        proposalDetails: {
+          src: DIR + "proposal-details.png",
+          w: 1917,
+          h: 917,
+          crop: 0,
+          url: "demo.avyro.in/dashboard/crm/proposals/proposal-info"
+        },
+        uploadProposal: {
+          src: DIR + "Upload-Proposal.png",
+          w: 1917,
+          h: 922,
+          crop: 0,
+          url: "demo.avyro.in/dashboard/crm/proposals/proposal-info"
+        }
+      };
+
+      /* ------------------------------------------------------------------
+       * Scenes (Ultra-brief, crisp callouts & zero-overlap marker positions)
+       * ------------------------------------------------------------------ */
+      const SCENES = [
+        /* 1. Marketing Page Overview & Add New (Event Main.png) */
+        {
+          screen: "eventMain",
+          tag: "Marketing Page",
+          title: "Conferences & Events",
+          body: "Track marketing events, costs, and leads, then click Add New to register an event.",
+          points: [
+            "13 Events · $30,259 Cost · 26 Leads (65.38%)",
+            "Click Add New to log an event"
+          ],
+          holes: [
+            { x: 112, y: 120, w: 940, h: 46, n: 1, label: "Marketing Channels", markerX: 660, markerY: 98 },
+            { x: 118, y: 204, w: 1768, h: 92, n: 2, label: "Event KPIs", markerX: 130, markerY: 192 },
+            { x: 1812, y: 116, w: 83, h: 42, n: 3, label: "Add New", markerX: 1620, markerY: 136 }
+          ],
+          pulses: [{ x: 1814, y: 118, w: 79, h: 38 }],
+          hotspots: [{ x: 1812, y: 116, w: 83, h: 42, title: "Click Add New" }],
+          callout: { x: 880, y: 360, w: 305 },
+          cursor: { x: 1755, y: 137 },
+          nextLabel: "Add New",
+          next: async () => { await moveTo(1854, 137); await click(); }
+        },
+
+        /* 2. Filled Event Details Modal (Event Name Filled.png) */
+        {
+          screen: "eventFilled",
+          tag: "Details Filled",
+          title: "Architecture Expo 2027",
+          body: "Event details, travel costs, NYC venue, and status (Attended) are set.",
+          points: [
+            "Status options: Planned · Registered · Attended · Cancelled",
+            "Click Add to save event"
+          ],
+          holes: [
+            { x: 205, y: 130, w: 1506, h: 156, n: 1, label: "Architecture Expo 2027", markerX: 350, markerY: 118 },
+            { x: 205, y: 296, w: 1506, h: 150, n: 2, label: "Costs & Status (Attended)", markerX: 360, markerY: 294 },
+            { x: 205, y: 616, w: 1506, h: 146, n: 3, label: "Javits Convention Center, NYC", markerX: 380, markerY: 598 },
+            { x: 1628, y: 782, w: 75, h: 41, n: 4, label: "Add Event", markerX: 1480, markerY: 802 }
+          ],
+          notesAbove: [
+            { x: 1335, y: 318, text: "Status options: Planned · Registered · Attended · Cancelled" }
+          ],
+          pulses: [{ x: 1630, y: 784, w: 71, h: 37 }],
+          hotspots: [{ x: 1628, y: 782, w: 75, h: 41, title: "Click Add to register event" }],
+          callout: { x: 1020, y: 456, w: 310 },
+          cursor: { x: 1440, y: 802 },
+          nextLabel: "Add Event",
+          next: async () => { await moveTo(1665, 802); await click(); }
+        },
+
+        /* 3. Leads Main Page – Viewing Event-Generated Leads & Click + Add New Lead (Leads Main.png) */
+        {
+          screen: "leadsMain",
+          tag: "CRM Leads",
+          title: "Event Leads & Add New Lead",
+          body: "View event-generated leads in the pipeline, then click + Add New Lead.",
+          points: [
+            "39 Total · 13 Fresh · 25 Qualified",
+            "Click + Add New Lead to log the expo lead"
+          ],
+          holes: [
+            { x: 124, y: 118, w: 626, h: 34, n: 1, label: "Lead Filters & Search", markerX: 775, markerY: 135 },
+            { x: 1307, y: 206, w: 574, h: 232, n: 2, label: "Architecture Expo Lead", markerX: 1312, markerY: 190 },
+            { x: 130, y: 453, w: 1751, h: 232, n: 3, label: "Conferences/Events Leads", markerX: 380, markerY: 446 },
+            { x: 1772, y: 117, w: 120, h: 34, n: 4, label: "+ Add New Lead", markerX: 1745, markerY: 92 }
+          ],
+          pulses: [{ x: 1770, y: 117, w: 122, h: 34 }],
+          hotspots: [{ x: 1770, y: 117, w: 122, h: 34, title: "Click + Add New Lead" }],
+          callout: { x: 745, y: 225, w: 305 },
+          cursor: { x: 1831, y: 195 },
+          nextLabel: "+ Add New Lead",
+          next: async () => { await moveTo(1831, 134); await click(); }
+        },
+
+        /* 4. Add New Lead – Basic Info & Event Source (Leads Filled 1st.png) */
+        {
+          screen: "leadsFilled1",
+          tag: "Add Lead",
+          title: "Company & Event Source",
+          body: "Enter company info, link the lead to Architecture Expo 2027, and click Add.",
+          points: [
+            "1. Skyline Architecture Studio ($12.5M · 85 Employees)",
+            "2. Source: Conferences/Events → Architecture Expo 2027 (75%)"
+          ],
+          holes: [
+            { x: 210, y: 124, w: 1485, h: 226, n: 1, label: "Company Basic Info", markerX: 350, markerY: 124 },
+            { x: 210, y: 468, w: 1485, h: 184, n: 2, label: "Event Source (Architecture Expo 2027) & 75% Prob.", markerX: 350, markerY: 468 },
+            { x: 1630, y: 811, w: 79, h: 43, n: 3, label: "Add Lead", markerX: 1620, markerY: 792 }
+          ],
+          pulses: [{ x: 1632, y: 813, w: 75, h: 39 }],
+          hotspots: [{ x: 1630, y: 811, w: 79, h: 43, title: "Click Add to create lead" }],
+          callout: { x: 1050, y: 695, w: 305 },
+          cursor: { x: 420, y: 520 },
+          nextLabel: "Add Lead",
+          next: async () => { await moveTo(1669, 832); await click(); }
+        },
+
+        /* 5. Created Tasks & Attended Meeting on Lead Info (M&T leads.png) */
+        {
+          screen: "mtLeads",
+          tag: "Tasks & Meetings",
+          title: "Created Tasks & Attended Meeting",
+          body: "Open tasks appear under Open Activities, and the completed follow-up meeting is logged under Closed Activities.",
+          points: [
+            "1. Assigned Team: PIC (Amanda), PM (Natalie), Owner (Tony)",
+            "2. Open Tasks (2) & Attended Meeting (1)"
+          ],
+          holes: [
+            { x: 124, y: 483, w: 330, h: 231, n: 1, label: "Assigned Team (PIC, PM & Owner)", markerX: 215, markerY: 480 },
+            { x: 495, y: 148, w: 1399, h: 366, n: 2, label: "Open Activities: Tasks (2)", markerX: 615, markerY: 144 },
+            { x: 495, y: 542, w: 705, h: 325, n: 3, label: "Closed Activities: Attended Meeting (1)", markerX: 625, markerY: 538 }
+          ],
+          callout: { x: 1280, y: 585, w: 305 },
+          cursor: { x: 750, y: 360 },
+          nextLabel: "Next: Emails, Notes & Files"
+        },
+
+        /* 15. Emails, Notes & Attachments on Lead Info (E&A Leads.png) */
+        {
+          screen: "eaLeads",
+          tag: "Emails, Notes & Files",
+          title: "Compose Emails, Add Notes & Attachments",
+          body: "Scroll down on Lead Info to send follow-up emails, record project & competitor notes, and upload attachments.",
+          points: [
+            "1. Emails: Compose Email & track Sent (4) follow-up threads",
+            "2. Notes: Add New note (Competitor Analysis – Skyline Office Renovation)",
+            "3. Attachments: Upload & preview files (Discussion.pdf)"
+          ],
+          holes: [
+            { x: 440, y: 64, w: 1456, h: 335, n: 1, label: "Sent Emails (4) & Compose Email", markerX: 540, markerY: 94 },
+            { x: 440, y: 420, w: 1456, h: 193, n: 2, label: "Notes (Competitor Analysis – Skyline Office Renovation)", markerX: 540, markerY: 448 },
+            { x: 440, y: 634, w: 1456, h: 256, n: 3, label: "Attachments (Discussion.pdf)", markerX: 560, markerY: 663 }
+          ],
+          callout: { x: 1185, y: 432, w: 375 },
+          cursor: { x: 750, y: 530 },
+          nextLabel: "Next: Convert to Opportunity"
+        },
+
+        /* 7. Lead Qualified & Convert to Opportunity (Lead to opputunity.png) */
+        {
+          screen: "leadToOpportunity",
+          tag: "Convert to Opportunity",
+          title: "Convert Lead to Opportunity",
+          body: "Click Convert to Opportunity at the top-right to open the Opportunity form.",
+          points: [
+            "Click Convert to Opportunity"
+          ],
+          holes: [
+            { x: 1754, y: 63, w: 132, h: 34, n: 1, label: "Convert to Opportunity", markerX: 1535, markerY: 80 }
+          ],
+          pulses: [{ x: 1754, y: 63, w: 132, h: 34 }],
+          hotspots: [{ x: 1754, y: 63, w: 132, h: 34, title: "Click Convert to Opportunity" }],
+          callout: { x: 1220, y: 560, w: 305 },
+          cursor: { x: 1680, y: 150 },
+          nextLabel: "Convert to Opportunity",
+          next: async () => { await moveTo(1820, 80); await click(); }
+        },
+
+        /* 8. Opportunity Work Plan Combined (combined.png) */
+        {
+          screen: "opportunityCombined",
+          tag: "Work Plan",
+          title: "Project Scope, Understanding & Plan",
+          body: "Define Project Scope, Approach, Understanding, and the 3-stage Project Plan.",
+          points: [
+            "1. Scope, Approach & Understanding",
+            "2. Project Plan: Stages 1, 2 & 3 (8.00 Months)"
+          ],
+          holes: [
+            { x: 434, y: 274, w: 1450, h: 72, n: 1, label: "Project Scope", markerX: 545, markerY: 287 },
+            { x: 434, y: 360, w: 1450, h: 196, n: 2, label: "Project Approach & Understanding", markerX: 575, markerY: 366 },
+            { x: 434, y: 577, w: 1450, h: 371, n: 3, label: "Project Plan (Stages 1, 2 & 3 · 8.00 Months)", markerX: 880, markerY: 612 }
+          ],
+          callout: { x: 1120, y: 115, w: 295 },
+          cursor: { x: 600, y: 612 },
+          nextLabel: "View Resource Planning"
+        },
+
+        /* 9. Combined Resource Planning & Consultant Fees (Combined-planning.png) */
+        {
+          screen: "opportunityCombinedPlanning",
+          tag: "Resource Planning",
+          title: "Designation Planning & Consultant Fees",
+          body: "Plan hours and fees by Designation across all stages, plus profit margin and consultants.",
+          points: [
+            "1. Stages 1–3: Architect & Jr. Architect hours & fees",
+            "2. Sub-Total + 15% Profit & Consultant fees"
+          ],
+          holes: [
+            { x: 708, y: 155, w: 1170, h: 625, n: 1, label: "Designation-Wise Planning (Stages 1, 2 & 3)", markerX: 880, markerY: 168 },
+            { x: 708, y: 800, w: 1170, h: 175, n: 2, label: "Sub-Total, 15% Profit & Consultant Fees", markerX: 1120, markerY: 790 }
+          ],
+          callout: { x: 115, y: 310, w: 295 },
+          cursor: { x: 850, y: 260 },
+          nextLabel: "Next: PIC Approval"
+        },
+
+        /* 25. Work Plan Approved by PIC & Change Status to Proposals (Change status.png) */
+        {
+          screen: "opportunityChangeStatus",
+          tag: "PIC Approved",
+          title: "Approved by PIC → Move to Proposals",
+          body: "Work Plan is approved by the PIC—click Change Status to move to Proposals.",
+          points: [
+            "1. Work Plan Status: Approved by PIC",
+            "2. Click Change Status → Proposals"
+          ],
+          holes: [
+            { x: 139, y: 299, w: 313, h: 36, n: 1, label: "Work Plan Status: Approved", markerX: 139, markerY: 278 },
+            { x: 498, y: 165, w: 1396, h: 48, n: 2, label: "Approved by PIC (Approve WorkPlan)", markerX: 825, markerY: 189 },
+            { x: 1778, y: 87, w: 104, h: 38, n: 3, label: "Change Status → Proposals", markerX: 1500, markerY: 106 }
+          ],
+          pulses: [{ x: 1778, y: 87, w: 104, h: 38 }],
+          hotspots: [{ x: 1778, y: 87, w: 104, h: 38, title: "Click Change Status" }],
+          callout: { x: 1120, y: 710, w: 305 },
+          cursor: { x: 1680, y: 160 },
+          nextLabel: "Change Status",
+          next: async () => { await moveTo(1830, 106); await click(); }
+        },
+
+        /* 12. Proposals Dashboard – Card Reached Proposals (Proposal Main.png) */
+        {
+          screen: "proposalMain",
+          tag: "Proposals",
+          title: "Opportunity Moved to Proposals",
+          body: "Skyline Corporate Office Renovation has reached Proposals—click the card to open the Proposal Editor.",
+          points: [
+            "1. Proposals Tab: Listed under New (2)",
+            "2. Click Skyline Corporate Office Renovation ($1.3M · On Time)"
+          ],
+          holes: [
+            { x: 124, y: 74, w: 690, h: 82, n: 1, label: "Proposals Tab · New (2)", markerX: 835, markerY: 137 },
+            { x: 130, y: 214, w: 575, h: 226, n: 2, label: "Skyline Corporate Office Renovation ($1.3M · On Time)", markerX: 135, markerY: 196 }
+          ],
+          pulses: [{ x: 130, y: 214, w: 575, h: 226 }],
+          hotspots: [{ x: 130, y: 214, w: 575, h: 226, title: "Click Skyline Corporate Office Renovation" }],
+          callout: { x: 1360, y: 230, w: 305 },
+          cursor: { x: 650, y: 380 },
+          nextLabel: "Open Proposal",
+          next: async () => { await moveTo(415, 325); await click(); }
+        },
+
+        /* 12. Edit Proposal – Add Client & PIC Signatures (Proposal-create.png) */
+        {
+          screen: "proposalCreate",
+          tag: "Proposal Signatures",
+          title: "Add Client & PIC Signatures",
+          body: "Place the Client Signature and PIC/PM Signature fields on the proposal slides, then click Save.",
+          points: [
+            "1. Proposal Slides & Content preview",
+            "2. Place Client & PIC/PM Signatures → Click Save"
+          ],
+          holes: [
+            { x: 263, y: 148, w: 1340, h: 760, n: 1, label: "Proposal Slides & Document", markerX: 380, markerY: 126 },
+            { x: 1647, y: 220, w: 246, h: 157, n: 2, label: "Add Client & PIC Signatures", markerX: 1647, markerY: 405 },
+            { x: 1805, y: 118, w: 54, h: 30, n: 3, label: "Save Proposal", markerX: 1630, markerY: 96 }
+          ],
+          pulses: [{ x: 1805, y: 118, w: 54, h: 30 }],
+          hotspots: [{ x: 1805, y: 118, w: 54, h: 30, title: "Click Save Proposal" }],
+          callout: { x: 1600, y: 500, w: 295 },
+          cursor: { x: 1715, y: 280 },
+          nextLabel: "Save Proposal",
+          next: async () => { await moveTo(1832, 133); await click(); }
+        },
+
+        /* 13. Send Proposal for Signature to PIC & Client (send-for-sign.png) */
+        {
+          screen: "sendForSign",
+          tag: "Send for Signature",
+          title: "Send Proposal for Signature",
+          body: "Open the proposal card menu and click Send for signature to route it to the PIC and Client.",
+          points: [
+            "1. Proposal V1 (In Draft · Retail building.pdf)",
+            "2. Click Send for signature"
+          ],
+          holes: [
+            { x: 440, y: 372, w: 464, h: 196, n: 1, label: "Proposal V1 · Send for Signature", markerX: 445, markerY: 360 }
+          ],
+          pulses: [{ x: 696, y: 416, w: 200, h: 36 }],
+          hotspots: [{ x: 696, y: 416, w: 200, h: 36, title: "Click Send for signature" }],
+          callout: { x: 1020, y: 380, w: 300 },
+          cursor: { x: 640, y: 480 },
+          nextLabel: "Send for Signature",
+          next: async () => { await moveTo(796, 434); await click(); }
+        },
+
+        /* 14. Send to Client Drawer – DocuSign Link & Email (drawer.png) */
+        {
+          screen: "sendDrawer",
+          tag: "Send to Client",
+          title: "Send Signature Link to Client",
+          body: "Review the recipient email, message, and 7-day DocuSign link in the drawer, then click Send to client.",
+          points: [
+            "1. Recipient (To/CC), Subject & DocuSign message",
+            "2. Secure 7-day review link → Click Send to client"
+          ],
+          holes: [
+            { x: 1335, y: 120, w: 565, h: 505, n: 1, label: "Recipient, Subject & DocuSign Link", markerX: 1345, markerY: 112 },
+            { x: 1335, y: 668, w: 565, h: 72, n: 2, label: "Secure Review Link (Valid 7 Days)", markerX: 1345, markerY: 660 },
+            { x: 1758, y: 948, w: 142, h: 36, n: 3, label: "Send to Client", markerX: 1565, markerY: 966 }
+          ],
+          pulses: [{ x: 1758, y: 948, w: 142, h: 36 }],
+          hotspots: [{ x: 1758, y: 948, w: 142, h: 36, title: "Click Send to client" }],
+          callout: { x: 880, y: 360, w: 305 },
+          cursor: { x: 1620, y: 700 },
+          nextLabel: "Send to Client",
+          next: async () => { await moveTo(1829, 966); await click(); }
+        },
+
+        /* 15. Project Created – Project Info & Stages (Project-info.png) */
+        {
+          screen: "projectInfo",
+          tag: "Project Created",
+          title: "Converted to Active Project",
+          body: "Once signed, Skyline Corporate Office Renovation is created under Projects—click Directory to view project partners.",
+          points: [
+            "1. Client Info, Cost ($33.26K · 750h) & POC",
+            "2. PIC, PM & Project Scope / Stages Timeline"
+          ],
+          holes: [
+            { x: 118, y: 141, w: 565, h: 836, n: 1, label: "Project Details, Cost & POC", markerX: 280, markerY: 122 },
+            { x: 708, y: 141, w: 1158, h: 445, n: 2, label: "PIC, PM & Project Scope / Understanding", markerX: 980, markerY: 122 },
+            { x: 708, y: 613, w: 1158, h: 364, n: 3, label: "Project Stages Timeline & Summary (750 Hrs · $33,264.40)", markerX: 1120, markerY: 601 }
+          ],
+          pulses: [{ x: 115, y: 108, w: 48, h: 26 }],
+          hotspots: [{ x: 115, y: 108, w: 48, h: 26, title: "Click Directory tab" }],
+          callout: { x: 1280, y: 165, w: 305 },
+          cursor: { x: 960, y: 760 },
+          nextLabel: "View Directory",
+          next: async () => { await moveTo(139, 121); await click(); }
+        },
+
+        /* 16. Project Directory – Consultants, Brand Partners & Widgets (Directory.png) */
+        {
+          screen: "projectDirectory",
+          tag: "Project Directory",
+          title: "Consultants, Brand Partners & Widgets",
+          body: "Manage project metadata, external consultants, brand partners, and facility widgets in the Directory tab.",
+          points: [
+            "1. Project Details (PR125AVYRO.999 · Natalie Brooks · $18,699)",
+            "2. Project Consultants (2 firms) & Brand Partners (3 brands)"
+          ],
+          holes: [
+            { x: 117, y: 135, w: 1732, h: 212, n: 1, label: "Project Details", markerX: 225, markerY: 116 },
+            { x: 118, y: 425, w: 867, h: 157, n: 2, label: "Project Consultants (2 Firms)", markerX: 265, markerY: 405 },
+            { x: 118, y: 659, w: 1301, h: 155, n: 3, label: "Brand Partners (3 Brands) & Facility Widgets", markerX: 235, markerY: 639 }
+          ],
+          callout: { x: 1120, y: 418, w: 305 },
+          cursor: { x: 450, y: 500 },
+          nextLabel: "Restart demo",
+          restart: true
+        }
+      ];
+
+      /* ------------------------------------------------------------------
+       * DOM refs
+       * ------------------------------------------------------------------ */
+      const $ = (id) => document.getElementById(id);
+      const viewport = $("viewport"), frame = $("frame"), stage = $("stage"), shot = $("shot"), storyCanvas = $("storyCanvas");
+      const dim = $("dim"), fakeLayer = $("fakeLayer"), markLayer = $("markLayer"), calloutLayer = $("calloutLayer");
+      const cursor = $("cursor"), intro = $("intro"), progress = $("progress"), stepLabel = $("stepLabel"), urlEl = $("url");
+      const SVG_NS = "http://www.w3.org/2000/svg";
+      const CHROME_H = 34;
+
+      let index = 0;
+      let busy = false;
+      let started = false;
+      let currentScreen = null;
+
+      /* ------------------------------------------------------------------
+       * Geometry helpers (image px → % of stage)
+       * ------------------------------------------------------------------ */
+      const effH = (s) => s.h - (s.crop || 0) - (s.cropBottom || 0);
+      const px = (s, x) => (x / s.w) * 100 + "%";
+      const py = (s, y) => ((y - s.crop) / effH(s)) * 100 + "%";
+      const pw = (s, w) => (w / s.w) * 100 + "%";
+      const ph = (s, h) => (h / effH(s)) * 100 + "%";
+
+      function place(el, s, r) {
+        el.style.left = px(s, r.x);
+        el.style.top = py(s, r.y);
+        if (r.w !== undefined) el.style.width = pw(s, r.w);
+        if (r.h !== undefined) el.style.height = ph(s, r.h);
+      }
+
+      function fit() {
+        const s = SCREENS[currentScreen || "eventMain"];
+        const aspect = s.w / effH(s);
+        const availW = viewport.clientWidth - 48;
+        const availH = viewport.clientHeight - 18 - CHROME_H;
+        const width = Math.max(320, Math.min(availW, availH * aspect));
+        frame.style.width = width + "px";
+        stage.style.width = width + "px";
+        stage.style.height = width / aspect + "px";
+      }
+
+      /* ------------------------------------------------------------------
+       * Timing helpers (Web Animations API)
+       * ------------------------------------------------------------------ */
+      async function moveTo(x, y, duration = 850) {
+        cursor.style.display = "block";
+        const s = SCREENS[currentScreen];
+        const toLeft = px(s, x), toTop = py(s, y);
+        const from = { left: cursor.style.left || "50%", top: cursor.style.top || "50%" };
+        const anim = cursor.animate(
+          [from, { left: toLeft, top: toTop }],
+          { duration, easing: "cubic-bezier(.45,.05,.25,1)", fill: "forwards" }
+        );
+        await anim.finished;
+        cursor.style.left = toLeft;
+        cursor.style.top = toTop;
+        anim.cancel();
+      }
+
+      function setCursor(x, y) {
+        const s = SCREENS[currentScreen];
+        cursor.style.left = px(s, x);
+        cursor.style.top = py(s, y);
+      }
+
+      async function click() {
+        const r = document.createElement("div");
+        r.className = "ripple";
+        r.style.left = cursor.style.left;
+        r.style.top = cursor.style.top;
+        stage.appendChild(r);
+        cursor.animate([{ transform: "scale(1)" }, { transform: "scale(.82)" }, { transform: "scale(1)" }], { duration: 260 });
+        await r.animate(
+          [{ opacity: 1, transform: "translate(-50%,-50%) scale(.2)" }, { opacity: 0, transform: "translate(-50%,-50%) scale(1.4)" }],
+          { duration: 500, easing: "ease-out" }
+        ).finished;
+        r.remove();
+      }
+
+      /* ------------------------------------------------------------------
+       * Rendering
+       * ------------------------------------------------------------------ */
+      function drawDim(scene, s) {
+        dim.setAttribute("viewBox", `0 0 ${s.w} ${effH(s)}`);
+        dim.replaceChildren();
+        if (scene.noDim) return;
+
+        const holes = scene.holes || [];
+        const maskId = "m" + Math.random().toString(36).slice(2);
+        const defs = document.createElementNS(SVG_NS, "defs");
+        const mask = document.createElementNS(SVG_NS, "mask");
+        mask.setAttribute("id", maskId);
+        const base = rect(0, 0, s.w, effH(s), 0);
+        base.setAttribute("fill", "white");
+        mask.appendChild(base);
+        holes.forEach((h) => {
+          const r = rect(h.x - 6, h.y - s.crop - 6, h.w + 12, h.h + 12, 12);
+          r.setAttribute("fill", "black");
+          mask.appendChild(r);
+        });
+        defs.appendChild(mask);
+        dim.appendChild(defs);
+
+        const shade = rect(0, 0, s.w, effH(s), 0);
+        shade.setAttribute("fill", "rgba(15, 23, 42, 0.22)");
+        shade.setAttribute("mask", `url(#${maskId})`);
+        dim.appendChild(shade);
+
+        holes.forEach((h) => {
+          const o = rect(h.x - 6, h.y - s.crop - 6, h.w + 12, h.h + 12, 12);
+          o.setAttribute("class", "outline");
+          dim.appendChild(o);
+        });
+        dim.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 350 });
+      }
+
+      function rect(x, y, w, h, r) {
+        const el = document.createElementNS(SVG_NS, "rect");
+        el.setAttribute("x", x); el.setAttribute("y", y);
+        el.setAttribute("width", w); el.setAttribute("height", h);
+        el.setAttribute("rx", r); el.setAttribute("ry", r);
+        return el;
+      }
+
+      function drawMarks(scene, s) {
+        markLayer.replaceChildren();
+        (scene.pulses || []).forEach((p) => {
+          const el = document.createElement("div");
+          el.className = "pulse";
+          place(el, s, p);
+          markLayer.appendChild(el);
+        });
+        (scene.hotspots || []).forEach((hs) => {
+          const el = document.createElement("div");
+          el.className = "hotspot";
+          if (hs.title) el.title = hs.title;
+          place(el, s, hs);
+          el.addEventListener("click", goNext);
+          markLayer.appendChild(el);
+        });
+        (scene.holes || []).filter((h) => h.n).forEach((h) => {
+          const m = document.createElement("div");
+          m.className = "marker";
+          const rawX = h.markerX !== undefined ? h.markerX : h.x - 4;
+          const rawY = h.markerY !== undefined ? h.markerY : h.y - 4;
+          const safeX = Math.min(s.w - 150, Math.max(16, rawX));
+          place(m, s, { x: safeX, y: rawY });
+          const b = document.createElement("b");
+          b.textContent = h.n;
+          m.appendChild(b);
+          if (h.label) {
+            const l = document.createElement("span");
+            l.textContent = h.label;
+            m.appendChild(l);
+          }
+          markLayer.appendChild(m);
+          const stageW = stage.clientWidth;
+          if (stageW > 0 && m.offsetLeft + m.offsetWidth > stageW - 10) {
+            const clampedLeft = Math.max(8, stageW - m.offsetWidth - 10);
+            m.style.left = (clampedLeft / stageW) * 100 + "%";
+          }
+        });
+        (scene.notesAbove || []).forEach((na) => {
+          const n = document.createElement("div");
+          n.className = "note-above";
+          place(n, s, { x: na.x, y: na.y });
+          n.textContent = na.text;
+          markLayer.appendChild(n);
+        });
+      }
+
+      function drawCallout(scene, s) {
+        calloutLayer.replaceChildren();
+        const c = document.createElement("section");
+        c.className = "callout";
+        c.setAttribute("role", "dialog");
+        c.setAttribute("aria-label", scene.title);
+        place(c, s, { x: scene.callout.x, y: scene.callout.y, w: scene.callout.w });
+
+        const tag = document.createElement("span");
+        tag.className = "tag";
+        tag.textContent = scene.tag;
+        const h = document.createElement("h3");
+        h.textContent = scene.title;
+        const p = document.createElement("p");
+        p.textContent = scene.body;
+        const ul = document.createElement("ul");
+        scene.points.forEach((t) => { const li = document.createElement("li"); li.textContent = t; ul.appendChild(li); });
+
+        const actions = document.createElement("div");
+        actions.className = "actions";
+        const count = document.createElement("span");
+        count.className = "count";
+        count.textContent = `${index + 1} / ${SCENES.length}`;
+        const btns = document.createElement("div");
+        btns.className = "btns";
+        const back = document.createElement("button");
+        back.type = "button";
+        back.className = "btn btn-ghost";
+        back.textContent = "← Back";
+        back.disabled = index === 0;
+        back.addEventListener("click", goBack);
+        const next = document.createElement("button");
+        next.type = "button";
+        next.className = "btn btn-primary";
+        next.id = "nextBtn";
+        next.textContent = (scene.nextLabel || "Next") + (scene.restart ? " ↺" : " →");
+        next.addEventListener("click", goNext);
+        btns.append(back, next);
+        actions.append(count, btns);
+
+        c.append(tag, h, p, ul, actions);
+        calloutLayer.appendChild(c);
+        const stageH = stage.clientHeight;
+        if (stageH > 0 && c.offsetTop + c.offsetHeight > stageH - 12) {
+          const clampedTop = Math.max(8, stageH - c.offsetHeight - 12);
+          c.style.top = (clampedTop / stageH) * 100 + "%";
+        }
+        next.focus({ preventScroll: true });
+      }
+
+      function drawProgress() {
+        progress.replaceChildren();
+        SCENES.forEach((sc, i) => {
+          const d = document.createElement("button");
+          d.type = "button";
+          d.className = "dot" + (i === index ? " active" : i < index ? " done" : "");
+          d.setAttribute("aria-label", `Go to step ${i + 1}: ${sc.title}`);
+          d.addEventListener("click", () => { if (!busy && started) render(i, { instant: true }); });
+          progress.appendChild(d);
+        });
+        stepLabel.textContent = `${index + 1}/${SCENES.length} · ${SCENES[index].tag}`;
+      }
+
+      async function swapScreen(key) {
+        if (currentScreen === key) return;
+        const s = SCREENS[key];
+        const screenEl = $("screen");
+        const activeLayer = s.storyHtml ? storyCanvas : screenEl;
+        if (currentScreen) {
+          await stage.animate([{ opacity: 1 }, { opacity: 0.15 }], { duration: 180 }).finished;
+        }
+        currentScreen = key;
+        if (s.storyHtml) {
+          storyCanvas.innerHTML = s.storyHtml;
+          storyCanvas.classList.add("active");
+          shot.style.display = "none";
+        } else {
+          storyCanvas.classList.remove("active");
+          storyCanvas.innerHTML = "";
+          shot.style.display = "block";
+          shot.src = s.src;
+          shot.alt = key + " screen";
+          shot.style.top = (-s.crop / effH(s)) * 100 + "%";
+          shot.style.height = (s.h / effH(s)) * 100 + "%";
+        }
+        urlEl.textContent = s.url;
+        fit();
+        await stage.animate([{ opacity: 0.15 }, { opacity: 1 }], { duration: 240 }).finished;
+      }
+
+      async function render(i, opts = {}) {
+        index = i;
+        const scene = SCENES[i];
+        calloutLayer.replaceChildren();
+        markLayer.replaceChildren();
+        fakeLayer.replaceChildren();
+        dim.replaceChildren();
+        const prevScreen = currentScreen;
+        const keepLeft = cursor.style.left, keepTop = cursor.style.top;
+        await swapScreen(scene.screen);
+        if (prevScreen !== currentScreen) { cursor.style.left = keepLeft; cursor.style.top = keepTop; }
+
+        const s = SCREENS[scene.screen];
+        if (scene.fakes) scene.fakes(scene).forEach((el) => fakeLayer.appendChild(el));
+        drawDim(scene, s);
+        drawMarks(scene, s);
+        drawProgress();
+        if (scene.hideCursor) {
+          cursor.style.display = "none";
+        } else {
+          cursor.style.display = "block";
+          if (scene.cursor) {
+            if (opts.instant) setCursor(scene.cursor.x, scene.cursor.y);
+            else await moveTo(scene.cursor.x, scene.cursor.y, 650);
+          }
+        }
+        drawCallout(scene, s);
+      }
+
+      async function goNext() {
+        if (busy || !started) return;
+        busy = true;
+        const scene = SCENES[index];
+        const nb = $("nextBtn");
+        if (nb) nb.disabled = true;
+        try {
+          if (scene.restart) { await restart(); return; }
+          calloutLayer.replaceChildren();
+          if (scene.next) await scene.next();
+          await render(Math.min(index + 1, SCENES.length - 1));
+        } finally {
+          busy = false;
+        }
+      }
+
+      async function goBack() {
+        if (busy || !started || index === 0) return;
+        busy = true;
+        try { await render(index - 1, { instant: true }); } finally { busy = false; }
+      }
+
+      async function restart() {
+        await render(0, { instant: true });
+      }
+
+      async function start() {
+        if (started) return;
+        started = true;
+        await intro.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 280, fill: "forwards" }).finished;
+        intro.remove();
+        busy = true;
+        try { await render(0); } finally { busy = false; }
+      }
+
+      /* ------------------------------------------------------------------
+       * Boot
+       * ------------------------------------------------------------------ */
+      Object.values(SCREENS).forEach((s) => {
+        if (s.src) {
+          const im = new Image();
+          im.src = s.src;
+        }
+      });
+      currentScreen = null;
+      swapScreen("eventMain").then(() => { cursor.style.display = "none"; });
+      window.addEventListener("resize", fit);
+      $("startBtn").addEventListener("click", start);
+      $("startBtn").focus();
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowRight" || e.key === " " || e.key === "Enter") {
+          e.preventDefault();
+          if (!started) start(); else goNext();
+        } else if (e.key === "ArrowLeft") {
+          e.preventDefault(); goBack();
+        } else if (e.key === "r" || e.key === "R") {
+          if (started && !busy) { busy = true; restart().finally(() => { busy = false; }); }
+        }
+      });
+    })();
+  </script>
+</body>
+
+</html>

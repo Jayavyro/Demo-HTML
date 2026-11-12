@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Avyro – Skill Mapping &amp; Smart Allocation Demo</title>
+<style>
+  :root {
+    --brand: #2563eb;
+    --brand-2: #7c3aed;
+    --ink: #0f172a;
+    --muted: #475569;
+    --bg: #0b1020;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+    background: radial-gradient(1200px 600px at 20% -10%, #1e293b 0%, var(--bg) 60%);
+    color: #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ---------- Top bar ---------- */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 24px; gap: 16px; flex: 0 0 auto;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: .2px; }
+  .brand-logo {
+    width: 30px; height: 30px; border-radius: 8px;
+    background: linear-gradient(135deg, #f97316, #ec4899 40%, var(--brand-2) 70%, var(--brand));
+  }
+  .brand small { display: block; font-weight: 500; color: #94a3b8; font-size: 12px; }
+  .progress { display: flex; align-items: center; gap: 6px; }
+  .dot {
+    width: 9px; height: 9px; border-radius: 50%; background: #334155; border: 0; padding: 0;
+    cursor: pointer; transition: all .3s;
+  }
+  .dot.done { background: #64748b; }
+  .dot.active { background: var(--brand); width: 26px; border-radius: 6px; }
+  .step-label { font-size: 13px; color: #94a3b8; min-width: 230px; text-align: right; }
+
+  /* ---------- Stage ---------- */
+  .viewport { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; padding: 0 24px 18px; min-height: 0; }
+  .frame {
+    border-radius: 14px; overflow: hidden; background: #fff;
+    box-shadow: 0 30px 80px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.06);
+  }
+  .chrome {
+    height: 34px; background: #f1f5f9; border-bottom: 1px solid #e2e8f0;
+    display: flex; align-items: center; gap: 8px; padding: 0 14px;
+  }
+  .chrome i { width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
+  .chrome i:nth-child(1) { background: #f87171; }
+  .chrome i:nth-child(2) { background: #fbbf24; }
+  .chrome i:nth-child(3) { background: #34d399; }
+  .url {
+    margin-left: 14px; flex: 1; max-width: 560px; height: 22px; border-radius: 11px;
+    background: #fff; border: 1px solid #e2e8f0; color: #475569; font-size: 12px;
+    display: flex; align-items: center; padding: 0 12px;
+  }
+  .stage { position: relative; overflow: hidden; container-type: inline-size; background: #fff; }
+  .screen { position: absolute; inset: 0; }
+  .screen img { position: absolute; left: 0; width: 100%; user-select: none; -webkit-user-drag: none; }
+
+  /* ---------- Overlay layers ---------- */
+  .dim { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .dim .outline { fill: none; stroke: var(--brand); stroke-width: 2.5; vector-effect: non-scaling-stroke; }
+  .layer { position: absolute; inset: 0; pointer-events: none; }
+  .layer > * { pointer-events: auto; }
+
+  .pulse {
+    position: absolute; border: 2.5px solid #f59e0b; border-radius: 8px;
+    animation: pulse 1.6s ease-out infinite; pointer-events: none;
+  }
+  @keyframes pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(245,158,11,.7); }
+    100% { box-shadow: 0 0 0 1.2cqw rgba(245,158,11,0); }
+  }
+
+  .hotspot {
+    position: absolute; cursor: pointer; border-radius: 8px;
+    background: rgba(37, 99, 235, 0); transition: background .2s;
+  }
+  .hotspot:hover { background: rgba(37, 99, 235, .12); }
+
+  .marker {
+    position: absolute; transform: translate(0, -70%);
+    display: flex; align-items: center; gap: .4cqw; pointer-events: none;
+    animation: pop .35s ease-out both;
+  }
+  .marker b {
+    width: 1.55cqw; height: 1.55cqw; min-width: 19px; min-height: 19px; border-radius: 50%;
+    background: var(--brand); color: #fff; font-size: max(10px, .78cqw);
+    display: grid; place-items: center; box-shadow: 0 0 0 3px #fff, 0 4px 10px rgba(0,0,0,.3);
+  }
+  .marker span {
+    background: var(--ink); color: #fff; font-size: max(10px, .7cqw); font-weight: 600;
+    padding: .22cqw .55cqw; border-radius: 999px; white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0,0,0,.25);
+  }
+  @keyframes pop { from { opacity: 0; transform: translate(0, -70%) scale(.6); } }
+
+  /* Descriptive callout note with pointer arrow above an element */
+  .note-above {
+    position: absolute; transform: translate(-50%, -115%);
+    background: var(--ink); color: #fff; font-size: max(10px, .72cqw); font-weight: 600;
+    padding: .35cqw .75cqw; border-radius: .5cqw; white-space: nowrap;
+    box-shadow: 0 8px 20px rgba(15,23,42,.3); border: 1.5px solid #3b82f6;
+    pointer-events: none; animation: popNote .35s ease-out both;
+  }
+  .note-above::after {
+    content: ""; position: absolute; left: 50%; bottom: -6px; transform: translateX(-50%);
+    border-width: 6px 6px 0 6px; border-style: solid;
+    border-color: var(--ink) transparent transparent transparent;
+  }
+  @keyframes popNote { from { opacity: 0; transform: translate(-50%, -100%) scale(.85); } }
+
+  /* fake UI overlays drawn on top of screenshots */
+  .fake-field {
+    position: absolute; background: #fff; display: flex; align-items: center; gap: .25cqw;
+    overflow: hidden; pointer-events: none; padding: 0 .3cqw;
+  }
+  .chip {
+    background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; border-radius: 999px;
+    font-size: max(7.5px, .58cqw); font-weight: 500; padding: .12cqw .44cqw; white-space: nowrap;
+    animation: chipIn .3s ease-out both;
+  }
+  @keyframes chipIn { from { opacity: 0; transform: scale(.7); } }
+  .fake-text {
+    position: absolute; background: #fff; color: #0f172a;
+    font-size: max(10px, .82cqw); display: flex; align-items: center; pointer-events: none;
+  }
+  .fake-text strong { color: var(--brand); margin-right: .3cqw; }
+
+  .fake-btn {
+    position: absolute; border-radius: .42cqw; font-weight: 600;
+    font-size: max(9px, .74cqw); display: flex; align-items: center; justify-content: center;
+    color: #fff; background: #2563eb; box-shadow: 0 4px 12px rgba(37,99,235,.35);
+    pointer-events: none; letter-spacing: .01em;
+  }
+  .fake-btn.mapped {
+    background: #ecfdf5; color: #059669; border: 1.5px solid #6ee7b7;
+    box-shadow: none; font-size: max(8px, .68cqw);
+  }
+
+  /* ---------- Ultra-compact, easy-to-read callout ---------- */
+  .callout {
+    position: absolute; background: rgba(255, 255, 255, 0.98); color: var(--ink);
+    backdrop-filter: blur(8px);
+    border-radius: .75cqw; padding: .75cqw .95cqw .68cqw;
+    box-shadow: 0 16px 40px rgba(15,23,42,.24), 0 0 0 1px rgba(15,23,42,.08);
+    font-size: clamp(10px, .72cqw, 13.5px); line-height: 1.35;
+    animation: calloutIn .3s cubic-bezier(.2,.8,.2,1) both;
+    border-top: .22cqw solid var(--brand);
+  }
+  @keyframes calloutIn { from { opacity: 0; transform: translateY(.6cqw) scale(.98); } }
+  .callout .tag {
+    display: inline-flex; align-items: center; font-size: .7em; font-weight: 700;
+    letter-spacing: .06em; text-transform: uppercase; color: var(--brand);
+    background: #eff6ff; padding: .15em .55em; border-radius: 999px;
+  }
+  .callout h3 { margin: .3em 0 .15em; font-size: 1.15em; line-height: 1.2; font-weight: 700; }
+  .callout p { margin: 0 0 .35em; color: var(--muted); }
+  .callout ul { margin: 0 0 .48em; padding: 0; list-style: none; }
+  .callout li { position: relative; padding-left: 1.15em; margin: .12em 0; color: #334155; font-weight: 500; }
+  .callout li::before {
+    content: "✓"; position: absolute; left: 0; top: 0; color: #16a34a; font-weight: 700;
+  }
+  .actions { display: flex; align-items: center; justify-content: space-between; gap: .5em; border-top: 1px solid #e2e8f0; padding-top: .48em; }
+  .actions .count { color: #94a3b8; font-size: .82em; }
+  .btns { display: flex; gap: .4em; }
+  .btn {
+    font: inherit; font-size: .9em; font-weight: 600; border-radius: .5em; padding: .4em .85em;
+    cursor: pointer; border: 1px solid transparent; transition: transform .15s, box-shadow .15s, background .15s;
+  }
+  .btn:focus-visible { outline: 3px solid #93c5fd; outline-offset: 2px; }
+  .btn-primary { background: linear-gradient(135deg, var(--brand), var(--brand-2)); color: #fff; box-shadow: 0 6px 16px rgba(37,99,235,.32); }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 10px 22px rgba(37,99,235,.42); }
+  .btn-ghost { background: #fff; color: #334155; border-color: #cbd5e1; }
+  .btn-ghost:hover { background: #f8fafc; }
+  .btn[disabled] { opacity: .5; cursor: default; transform: none; }
+
+  /* ---------- Cursor ---------- */
+  .cursor {
+    position: absolute; width: 1.5cqw; min-width: 18px; z-index: 50; pointer-events: none;
+    transform-origin: 0 0; filter: drop-shadow(0 3px 4px rgba(0,0,0,.35));
+  }
+  .cursor svg { display: block; width: 100%; height: auto; }
+  .ripple {
+    position: absolute; width: 3cqw; height: 3cqw; border-radius: 50%; z-index: 49;
+    border: 3px solid var(--brand); transform: translate(-50%, -50%); pointer-events: none;
+  }
+
+  /* ---------- Intro ---------- */
+  .intro {
+    position: absolute; inset: 0; z-index: 60; display: grid; place-items: center;
+    background: rgba(15,23,42,.45); backdrop-filter: blur(4px);
+  }
+  .intro-card {
+    background: #fff; color: var(--ink); border-radius: 1.2cqw; padding: 2cqw 2.4cqw; width: 46%;
+    text-align: center; font-size: clamp(11px, .9cqw, 16.5px); box-shadow: 0 30px 80px rgba(0,0,0,.4);
+  }
+  .intro-card h1 { font-size: 1.85em; margin: .3em 0 .25em; line-height: 1.2; }
+  .intro-card p { color: var(--muted); margin: 0 0 1.1em; }
+  .flow { display: flex; flex-wrap: wrap; justify-content: center; gap: .4em; margin-bottom: 1.3em; }
+  .flow span { font-size: .76em; background: #f1f5f9; color: #334155; padding: .32em .68em; border-radius: 999px; }
+  .flow span + span::before { content: "→ "; color: #94a3b8; }
+  .hint { color: #94a3b8; font-size: 12px; text-align: center; padding-bottom: 8px; }
+  kbd { background: #1e293b; border: 1px solid #334155; border-radius: 4px; padding: 1px 6px; font-size: 11px; }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-logo" aria-hidden="true"></div>
+      <div>Avyro<small>Skill Mapping, Smart Allocation &amp; Workplan Management</small></div>
+    </div>
+    <nav class="progress" id="progress" aria-label="Demo steps"></nav>
+    <div class="step-label" id="stepLabel" aria-live="polite"></div>
+  </header>
+
+  <main class="viewport" id="viewport">
+    <div class="frame" id="frame">
+      <div class="chrome" aria-hidden="true"><i></i><i></i><i></i><div class="url" id="url">demo.avyro.in</div></div>
+      <div class="stage" id="stage">
+        <div class="screen" id="screen"><img id="shot" alt="" /></div>
+        <div class="layer" id="fakeLayer"></div>
+        <svg class="dim" id="dim" preserveAspectRatio="none" aria-hidden="true"></svg>
+        <div class="layer" id="markLayer"></div>
+        <div class="layer" id="calloutLayer"></div>
+        <div class="cursor" id="cursor" aria-hidden="true">
+          <svg viewBox="0 0 24 32"><path d="M2 2 L2 26 L8.5 20 L13 30 L17 28.2 L12.6 18.6 L21.5 18.6 Z" fill="#0f172a" stroke="#fff" stroke-width="2" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="intro" id="intro">
+          <div class="intro-card">
+            <span class="tag" style="color:#2563eb;font-weight:700;font-size:.78em;letter-spacing:.08em;">PRODUCT WALKTHROUGH</span>
+            <h1>From Project Setup to Workplan Management</h1>
+            <p>Map role skills, allocate best-fit talent, and manage milestones &amp; tasks via Gantt or Excel import.</p>
+            <div class="flow">
+              <span>All Projects</span>
+              <span>Map Skills</span>
+              <span>Freeze Setup</span>
+              <span>Smart Allocation</span>
+              <span>Member Profile</span>
+              <span>Confirm Hours</span>
+              <span>Import Workplan</span>
+            </div>
+            <button class="btn btn-primary" id="startBtn" type="button">Start demo →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <div class="hint">Use <kbd>→</kbd> / <kbd>Space</kbd> for next, <kbd>←</kbd> for back, <kbd>R</kbd> to restart</div>
+
+<script>
+(() => {
+  "use strict";
+
+  const DIR = "Images/";
+  const SCREENS = {
+    projects:      { src: DIR + "Screenshot 2026-11-04 131433.png", w: 1917, h: 922, crop: 0,  url: "demo.avyro.in/dashboard/project-management" },
+    skillCfg:      { src: DIR + "Screenshot 2026-11-04 131809.png", w: 1916, h: 968, crop: 52, url: "demo.avyro.in/dashboard/project-management/project-setup" },
+    modal:         { src: DIR + "Screenshot 2026-11-04 131951.png", w: 1912, h: 911, crop: 0,  url: "demo.avyro.in/dashboard/project-management/project-setup" },
+    gantt:         { src: DIR + "ganttt.png",                       w: 1811, h: 868, crop: 0,  url: "demo.avyro.in/dashboard/project-management/work-plan" },
+    allocation:    { src: DIR + "Screenshot 2026-11-04 132151.png", w: 1916, h: 922, crop: 0,  url: "demo.avyro.in/dashboard/project-management/resource-allocation" },
+    profile:       { src: DIR + "image.png",                        w: 1917, h: 920, crop: 0,  url: "demo.avyro.in/dashboard/project-management/resource-allocation/member-profile" },
+    history:       { src: DIR + "Project history.png",              w: 1917, h: 918, crop: 0,  url: "demo.avyro.in/dashboard/project-management/resource-allocation/project-history" },
+    allocateHours: { src: DIR + "Allocate Hours.png",               w: 1917, h: 921, crop: 0,  url: "demo.avyro.in/dashboard/project-management/resource-allocation/allocate-hours" },
+    ongoingGantt:  { src: DIR + "Ongoing Gantt chart.png",          w: 1811, h: 868, crop: 0,  url: "demo.avyro.in/dashboard/project-management/workplan" },
+    importModal:   { src: DIR + "import model.png",                 w: 1917, h: 918, crop: 0,  url: "demo.avyro.in/dashboard/project-management/workplan" },
+    excelUpload:   { src: DIR + "Excel upload.png",                 w: 1917, h: 917, crop: 0,  url: "demo.avyro.in/dashboard/project-management/workplan/import-excel" },
+    filledGantt:       { src: DIR + "Filled gantt chart.png",           w: 1672, h: 940, crop: 0,  url: "demo.avyro.in/dashboard/project-management/workplan" },
+    workplanBuilder:   { src: DIR + "Workplan builder.png",             w: 1672, h: 941, crop: 0,  url: "demo.avyro.in/dashboard/project-management/workplan" },
+    empGantt:          { src: DIR + "Employee gantt.png",               w: 1810, h: 869, crop: 0,  url: "demo.avyro.in/dashboard/my-projects/workplan" },
+    timesheet:         { src: DIR + "Timesheet.png",                    w: 1910, h: 917, crop: 0,  url: "demo.avyro.in/dashboard/timesheet/my-timesheet" },
+    tsMap:             { src: DIR + "TimeSheet Map.png",                w: 1917, h: 912, crop: 0,  url: "demo.avyro.in/dashboard/timesheet/my-timesheet" },
+    tsMapDetails:      { src: DIR + "Timesheet Map Details.png",        w: 1917, h: 907, crop: 0,  url: "demo.avyro.in/dashboard/timesheet/my-timesheet" },
+    tsMapped:          { src: DIR + "Timesheet Mapped.png",             w: 1917, h: 963, crop: 52, url: "demo.avyro.in/dashboard/timesheet/my-timesheet" },
+    unreportedSelect:  { src: DIR + "Unreported select.png",            w: 1917, h: 920, crop: 0,  url: "demo.avyro.in/dashboard/timesheet/my-timesheet" },
+    mapUnreported:     { src: DIR + "Map unreported.png",               w: 1917, h: 917, crop: 0,  url: "demo.avyro.in/dashboard/timesheet/my-timesheet" },
+    mappedToProject:   { src: DIR + "Mapped to PRoject .png",           w: 1917, h: 917, crop: 0,  url: "demo.avyro.in/dashboard/timesheet/my-timesheet" },
+    mapToTask:         { src: DIR + "Map to task.png",                  w: 1913, h: 925, crop: 0,  url: "demo.avyro.in/dashboard/timesheet/my-timesheet" },
+    tsDetails:         { src: DIR + "Details of Timesheet.png",         w: 1917, h: 920, crop: 0,  url: "demo.avyro.in/dashboard/timesheet/my-timesheet" },
+    tsApproval:        { src: DIR + "Timesheet Approval.png",           w: 1815, h: 867, crop: 0,  url: "demo.avyro.in/dashboard/timesheet/my-timesheet/weekly" },
+    tsApprovalManager: { src: DIR + "Timesheet Approval_ Corrected Wednesday Totals.png", w: 1815, h: 867, crop: 0, url: "demo.avyro.in/dashboard/timesheet/timesheet-approval" },
+    taskDetails:       { src: DIR + "task details.png",                 w: 1917, h: 917, crop: 0,  url: "demo.avyro.in/dashboard/project-management/workplan/task-view" },
+    teamDashboard:     { src: DIR + "Project Team Dashboard Updated.png", w: 1814, h: 867, crop: 0, url: "demo.avyro.in/dashboard/project-management/project-team" },
+    documents:         { src: DIR + "folder.png",                       w: 1917, h: 918, crop: 0,  url: "demo.avyro.in/dashboard/project-management/documents" }
+  };
+
+  const SOFTWARE_SKILLS = [
+    "Autodesk Revit",
+    "Navisworks Manage",
+    "Bluebeam Revu"
+  ];
+  const TECHNICAL_SKILLS = [
+    "BIM Coordination",
+    "Revit Family Creation",
+    "Construction Documentation"
+  ];
+  const SOFT_SKILLS = [
+    "Problem Solving",
+    "Attention to Detail",
+    "Team Collaboration"
+  ];
+
+  /* ------------------------------------------------------------------
+   * Scenes (Ultra-brief descriptions positioned in empty/unused spaces)
+   * ------------------------------------------------------------------ */
+  const SCENES = [
+    /* 1. All Projects (placed in empty top-middle header space) */
+    {
+      screen: "projects",
+      noDim: true,
+      tag: "My Projects",
+      title: "All Projects Dashboard",
+      body: "Central view of all projects, hours, fees, and owners.",
+      points: [
+        "Filter by project status",
+        "Track hours, fees & progress"
+      ],
+      callout: { x: 960, y: 52, w: 360 },
+      cursor: { x: 960, y: 460 },
+      nextLabel: "Next"
+    },
+
+    /* 2. Select project (placed in empty top-middle space) */
+    {
+      screen: "projects",
+      tag: "Select Project",
+      title: "Configure Project Skills",
+      body: "Click ADD SKILL CONFIG on an upcoming project to set role skills.",
+      points: [
+        "Silver Creek Warehouse (400h · $18.7k)"
+      ],
+      holes: [
+        { x: 132, y: 76, w: 625, h: 40, n: 1, label: "Status filters" },
+        { x: 581, y: 197, w: 417, h: 451, n: 2, label: "Selected Project" }
+      ],
+      pulses: [{ x: 882, y: 312, w: 96, h: 24 }],
+      hotspots: [{ x: 882, y: 312, w: 96, h: 24, title: "Click ADD SKILL CONFIG" }],
+      callout: { x: 1020, y: 52, w: 370 },
+      cursor: { x: 1180, y: 500 },
+      nextLabel: "Add Skill Config",
+      next: async () => { await moveTo(930, 324); await click(); }
+    },
+
+    /* 3. Skill Configuration table (placed in empty bottom whitespace) */
+    {
+      screen: "skillCfg",
+      tag: "Skill Configuration",
+      title: "Stage Roles & Hours",
+      body: "Click Map Skills to define required skills for each role.",
+      points: [
+        "Roles, hours & fees per stage"
+      ],
+      holes: [
+        { x: 132, y: 138, w: 610, h: 36, n: 1, label: "Project" },
+        { x: 120, y: 282, w: 1787, h: 348, n: 2, label: "Stage roles & budgets" }
+      ],
+      pulses: [{ x: 1466, y: 438, w: 119, h: 38 }],
+      hotspots: [{ x: 1466, y: 438, w: 119, h: 38, title: "Click Map Skills" }],
+      callout: { x: 760, y: 665, w: 380 },
+      cursor: { x: 1250, y: 690 },
+      nextLabel: "Map Skills",
+      next: async () => { await moveTo(1525, 457); await click(); }
+    },
+
+    /* 4. Map Role Skills modal (placed in empty right-side space) */
+    {
+      screen: "modal",
+      tag: "Map Role Skills",
+      title: "Mapped Role Skills",
+      body: "Software, Technical & Soft skills selected for the role.",
+      points: [
+        "9 required skills mapped",
+        "Click Save Skills to apply"
+      ],
+      holes: [{ x: 658, y: 155, w: 600, h: 601, n: 1, label: "Role · Stage" }],
+      fakes: (scene) => [
+        chipsField(scene.screen, 696, 305, 498, 34, SOFTWARE_SKILLS),
+        chipsField(scene.screen, 696, 394, 498, 34, TECHNICAL_SKILLS),
+        chipsField(scene.screen, 696, 483, 498, 34, SOFT_SKILLS),
+        fakeText(scene.screen, 684, 642, 220, 26, "9", "skills selected")
+      ],
+      pulses: [{ x: 1096, y: 679, w: 137, h: 54 }],
+      hotspots: [{ x: 1096, y: 679, w: 137, h: 54, title: "Click Save Skills" }],
+      callout: { x: 1310, y: 520, w: 370 },
+      cursor: { x: 960, y: 500 },
+      nextLabel: "Save Skills",
+      next: async () => { await moveTo(1164, 706); await click(); }
+    },
+
+    /* 5. Freeze Setup enabled (placed in empty bottom whitespace) */
+    {
+      screen: "skillCfg",
+      tag: "Freeze Setup",
+      title: "Freeze Project Setup",
+      body: "Skills are mapped—click Freeze Setup to generate the Work Plan.",
+      points: [
+        "Freeze Setup button is now active"
+      ],
+      holes: [
+        { x: 1456, y: 382, w: 140, h: 104, n: 1, label: "Skills Mapped" },
+        { x: 1765, y: 128, w: 132, h: 55, n: 2, label: "Freeze Setup" }
+      ],
+      fakes: (scene) => [
+        fakeButton(scene.screen, 1466, 438, 119, 38, "✓ 9 Skills Mapped", "mapped"),
+        fakeButton(scene.screen, 1773, 136, 115, 40, "Freeze Setup", "")
+      ],
+      pulses: [{ x: 1771, y: 134, w: 119, h: 44 }],
+      hotspots: [{ x: 1771, y: 134, w: 119, h: 44, title: "Click Freeze Setup" }],
+      callout: { x: 760, y: 665, w: 380 },
+      cursor: { x: 1525, y: 457 },
+      nextLabel: "Freeze Setup",
+      next: async () => { await moveTo(1830, 156); await click(); }
+    },
+
+    /* 6. Gantt / Work Plan (placed in empty top-middle header space) */
+    {
+      screen: "gantt",
+      tag: "Work Plan",
+      title: "Gantt Timeline & Add Member",
+      body: "Review stage schedule & targets, then click Add member.",
+      points: [
+        "4 Resources · 400h · $18,699 Estimated"
+      ],
+      holes: [
+        { x: 122, y: 206, w: 1668, h: 282, n: 1, label: "Gantt Timeline" },
+        { x: 122, y: 532, w: 1668, h: 136, n: 2, label: "Resource & Fee Targets" },
+        { x: 1665, y: 687, w: 129, h: 46, n: 3, label: "Add member" }
+      ],
+      pulses: [{ x: 1669, y: 691, w: 121, h: 38 }],
+      hotspots: [{ x: 1669, y: 691, w: 121, h: 38, title: "Click Add member" }],
+      callout: { x: 1020, y: 12, w: 380 },
+      cursor: { x: 1420, y: 660 },
+      nextLabel: "Add member",
+      next: async () => { await moveTo(1730, 710); await click(); }
+    },
+
+    /* 7. Allocation Point 1 & 2 (placed in empty top-middle space) */
+    {
+      screen: "allocation",
+      tag: "Allocation · 1 & 2",
+      title: "1. Stage & 2. Designations",
+      body: "Pick a designation to rank available candidates for the stage.",
+      points: [
+        "Architect & Jr. Architect roles"
+      ],
+      holes: [
+        { x: 58, y: 22, w: 700, h: 38, n: 1, label: "Stage & timeline" },
+        { x: 62, y: 99, w: 375, h: 38, n: 2, label: "Designations" }
+      ],
+      callout: { x: 1040, y: 14, w: 375 },
+      cursor: { x: 107, y: 120 },
+      nextLabel: "Next: 3. Skills"
+    },
+
+    /* 8. Allocation Point 3 (placed in empty top-middle space) */
+    {
+      screen: "allocation",
+      tag: "Allocation · 3",
+      title: "3. Skills & Mapping",
+      body: "Employee skills are matched and highlighted against role needs.",
+      points: [
+        "Matched skills highlighted on cards"
+      ],
+      holes: [
+        { x: 68, y: 325, w: 405, h: 26, n: 3, label: "Skills & Mapping" },
+        { x: 554, y: 325, w: 385, h: 26 },
+        { x: 1041, y: 325, w: 395, h: 26 }
+      ],
+      pulses: [{ x: 1045, y: 327, w: 62, h: 22 }],
+      callout: { x: 1040, y: 14, w: 375 },
+      cursor: { x: 1080, y: 340 },
+      nextLabel: "Next: 4. Match %"
+    },
+
+    /* 9. Allocation Point 4 (placed in empty top-middle space) */
+    {
+      screen: "allocation",
+      tag: "Allocation · 4",
+      title: "4. Matching Percentage",
+      body: "Calculated using a configurable ratio of Matched Skills, Availability, and Suitability.",
+      points: [
+        "Configurable weight: Matched Skills + Availability + Suitability",
+        "Tony Stark: 90% Match · 4.2/5 Rating"
+      ],
+      holes: [
+        { x: 914, y: 190, w: 96, h: 68, n: 4, label: "Matching % (90%)" }
+      ],
+      pulses: [
+        { x: 933, y: 216, w: 74, h: 21 }
+      ],
+      callout: { x: 1040, y: 14, w: 375 },
+      cursor: { x: 960, y: 230 },
+      nextLabel: "Next: 5 & 6. Summary"
+    },
+
+    /* 10. Allocation Point 5 & 6 (placed in empty top-middle space) */
+    {
+      screen: "allocation",
+      tag: "Allocation · 5 & 6",
+      title: "5. Availability & 6. Summary",
+      body: "Check available hours & budget, or click a member photo for details.",
+      points: [
+        "Click Tony Stark's photo for Profile"
+      ],
+      holes: [
+        { x: 68, y: 372, w: 455, h: 44, n: 5, label: "Availability & delivery" },
+        { x: 1536, y: 190, w: 327, h: 380, n: 6, label: "Resource Summary" }
+      ],
+      hotspots: [
+        { x: 540, y: 188, w: 220, h: 65, title: "Click Tony Stark's photo to view Skill Profile" }
+      ],
+      callout: { x: 1040, y: 14, w: 375 },
+      cursor: { x: 1680, y: 420 },
+      nextLabel: "View Member Profile",
+      next: async () => { await moveTo(571, 218); await click(); }
+    },
+
+    /* 11. Member Skill Profile (placed in empty top-right space of modal) */
+    {
+      screen: "profile",
+      tag: "Skill Profile",
+      title: "Project-Approved Skills",
+      body: "Skills & ratings are earned from project approvals and feedback.",
+      points: [
+        "Software 4.3 · Technical 4.3 · Soft 4.0"
+      ],
+      holes: [
+        { x: 198, y: 108, w: 422, h: 745, n: 1, label: "Member KPIs" },
+        { x: 654, y: 185, w: 1040, h: 120, n: 2, label: "Approved Skill Scores" },
+        { x: 654, y: 318, w: 1040, h: 540, n: 3, label: "Project-Verified Skills" }
+      ],
+      hotspots: [{ x: 805, y: 130, w: 125, h: 36, title: "Click Project History" }],
+      callout: { x: 1180, y: 55, w: 380 },
+      cursor: { x: 1120, y: 425 },
+      nextLabel: "Project History",
+      next: async () => { await moveTo(865, 148); await click(); }
+    },
+
+    /* 12. Project History (placed in empty top-right space of modal) */
+    {
+      screen: "history",
+      hideCursor: true,
+      tag: "Project History",
+      title: "Projects, Sectors & Clients",
+      body: "Past & ongoing project log (Current Company & Other Projects), plus industry sectors and clients.",
+      points: [
+        "37 projects with role, tenure & hours"
+      ],
+      holes: [
+        { x: 678, y: 158, w: 964, h: 720, n: 1, label: "Projects Worked On (All 37)" },
+        { x: 274, y: 513, w: 370, h: 171, n: 2, label: "Sectors & Clients" }
+      ],
+      notesAbove: [
+        { x: 1015, y: 112, text: "Shows all industry sectors & clients the member has worked with" }
+      ],
+      callout: { x: 1495, y: 18, w: 380 },
+      nextLabel: "Allocate Hours"
+    },
+
+    /* 13. Allocate Hours 1: Hours, Budget & Team Tracker */
+    {
+      screen: "allocateHours",
+      tag: "Allocate Hours · 1",
+      title: "1. Hours, Budget & Team Tracker",
+      body: "Live progress bars track allocated hours, stage budget, fees, and team count.",
+      points: [
+        "135.6h used (64.4h left) · $5k budget left"
+      ],
+      holes: [
+        { x: 56, y: 80, w: 1810, h: 82, n: 1, label: "Hours, Budget & Team Tracker" }
+      ],
+      callout: { x: 590, y: 655, w: 380 },
+      cursor: { x: 420, y: 125 },
+      nextLabel: "Next"
+    },
+
+    /* 14. Allocate Hours 2: Allocated Hours & Job Roles */
+    {
+      screen: "allocateHours",
+      tag: "Allocate Hours · 2",
+      title: "2. Assign Hours & Job Roles",
+      body: "Enter allocated hours and select the job role for each selected member.",
+      points: [
+        "Tony (62.4h) & Robert (35.2h) · Job Captain"
+      ],
+      holes: [
+        { x: 58, y: 235, w: 1435, h: 382, n: 2, label: "Allocated Hours & Job Roles" }
+      ],
+      callout: { x: 590, y: 655, w: 380 },
+      cursor: { x: 960, y: 540 },
+      nextLabel: "Next"
+    },
+
+    /* 15. Allocate Hours 3: Confirm & Allocate */
+    {
+      screen: "allocateHours",
+      tag: "Allocate Hours · 3",
+      title: "3. Confirm & Allocate Team",
+      body: "Review totals in the summary and click Confirm & Allocate to finalize.",
+      points: [
+        "Click Confirm & Allocate (3 members)"
+      ],
+      holes: [
+        { x: 1606, y: 856, w: 250, h: 52, n: 3, label: "Confirm & Allocate" }
+      ],
+      pulses: [{ x: 1610, y: 860, w: 242, h: 44 }],
+      hotspots: [{ x: 1610, y: 860, w: 242, h: 44, title: "Click Confirm & Allocate" }],
+      callout: { x: 590, y: 655, w: 380 },
+      cursor: { x: 1450, y: 760 },
+      nextLabel: "Confirm & Allocate",
+      next: async () => { await moveTo(1731, 882); await click(); }
+    },
+
+    /* 14. Ongoing Gantt Chart (placed in empty top-middle header space) */
+    {
+      screen: "ongoingGantt",
+      tag: "Manage Project",
+      title: "Gantt & Import Workplan",
+      body: "Add milestones & tasks manually on the Gantt, or import a workplan.",
+      points: [
+        "Manual (+ Add Milestone) or Import Workplan"
+      ],
+      holes: [
+        { x: 112, y: 205, w: 1685, h: 585, n: 1, label: "Project Gantt (Manual Milestones & Tasks)" },
+        { x: 1620, y: 76, w: 166, h: 48, n: 2, label: "Import Workplan" }
+      ],
+      pulses: [{ x: 1622, y: 78, w: 162, h: 44 }],
+      hotspots: [{ x: 1622, y: 78, w: 162, h: 44, title: "Click Import Workplan" }],
+      callout: { x: 860, y: 68, w: 390 },
+      cursor: { x: 1400, y: 380 },
+      nextLabel: "Import Workplan",
+      next: async () => { await moveTo(1703, 100); await click(); }
+    },
+
+    /* 15. Import Workplan Modal (placed in empty side space outside modal) */
+    {
+      screen: "importModal",
+      tag: "Import Workplan",
+      title: "Import Options",
+      body: "Import from Project Plan Setup, Excel, or previous stages.",
+      points: [
+        "Click From Excel for bulk upload"
+      ],
+      holes: [
+        { x: 686, y: 194, w: 546, h: 532, n: 1, label: "Import Workplan Options" }
+      ],
+      pulses: [{ x: 722, y: 418, w: 474, h: 112 }],
+      hotspots: [{ x: 722, y: 418, w: 474, h: 112, title: "Click From Excel" }],
+      callout: { x: 1300, y: 520, w: 370 },
+      cursor: { x: 960, y: 340 },
+      nextLabel: "From Excel",
+      next: async () => { await moveTo(958, 474); await click(); }
+    },
+
+    /* 18. Import from Excel Modal (placed in empty side space outside modal) */
+    {
+      screen: "excelUpload",
+      tag: "Excel Upload",
+      title: "Upload Excel Workplan",
+      body: "Select the stage and upload your Milestones + Tasks Excel sheet.",
+      points: [
+        "Click Upload to populate the Gantt"
+      ],
+      holes: [
+        { x: 686, y: 190, w: 546, h: 540, n: 1, label: "Import from Excel" }
+      ],
+      pulses: [{ x: 1084, y: 668, w: 116, h: 44 }],
+      hotspots: [{ x: 1084, y: 668, w: 116, h: 44, title: "Click Upload" }],
+      callout: { x: 1300, y: 520, w: 370 },
+      cursor: { x: 958, y: 348 },
+      nextLabel: "Upload",
+      next: async () => { await moveTo(1142, 690); await click(); }
+    },
+
+    /* 19. Filled Gantt Chart – Plain View (no dimming/outlines) */
+    {
+      screen: "filledGantt",
+      noDim: true,
+      tag: "Workplan Populated",
+      title: "Excel Workplan Imported",
+      body: "The Gantt chart is now populated with the imported stages, milestone, and 5 tasks.",
+      points: [
+        "Stage A (Schematic Design) & Stage B (Design Development)",
+        "1 Milestone & 5 tasks (48h assigned) · Est. 400h ($18,699)"
+      ],
+      callout: { x: 1120, y: 430, w: 375 },
+      cursor: { x: 650, y: 540 },
+      nextLabel: "Next"
+    },
+
+    /* 20. Filled Gantt Chart – Outline 1: Imported Milestone & Tasks */
+    {
+      screen: "filledGantt",
+      tag: "Workplan · 1",
+      title: "1. Imported & Allocated Tasks",
+      body: "Tasks and milestones are imported from Excel and allocated directly to team members with assigned hours.",
+      points: [
+        "5 tasks (48h total) imported under 30% Schematic Design",
+        "Each task is allocated to assigned team members (Tony Stark & Rachel Zane)"
+      ],
+      holes: [
+        { x: 100, y: 436, w: 328, h: 218, n: 1, label: "Imported & Allocated Tasks (48h)" }
+      ],
+      callout: { x: 1120, y: 430, w: 385 },
+      cursor: { x: 240, y: 540 },
+      nextLabel: "Next"
+    },
+
+    /* 21. Filled Gantt Chart – Outline 2: Scheduled Task Bars & Milestone */
+    {
+      screen: "filledGantt",
+      tag: "Workplan · 2",
+      title: "2. Scheduled Gantt Timeline",
+      body: "Task bars (Oct 31 – Dec 31), milestone diamond (Nov 10), and Stage summaries are plotted automatically.",
+      points: [
+        "Oct 31 – Dec 31 task schedule & Stage Summary"
+      ],
+      holes: [
+        { x: 438, y: 436, w: 565, h: 218, n: 2, label: "Scheduled Task Bars & Milestone" }
+      ],
+      callout: { x: 1120, y: 430, w: 375 },
+      cursor: { x: 680, y: 540 },
+      nextLabel: "Employee View"
+    },
+
+    /* 22. Employee Login View (Employee gantt.png) – Plain View, no outlining */
+    {
+      screen: "empGantt",
+      noDim: true,
+      tag: "Employee Login",
+      title: "Employee Workplan View",
+      body: "On login, Rachel Zane (Jr. Architect) sees her assigned tasks, hours, and schedule.",
+      points: [
+        "Assigned tasks with Start (▷) & timeline"
+      ],
+      hotspots: [{ x: 4, y: 326, w: 52, h: 52, title: "Click Timesheet" }],
+      callout: { x: 880, y: 68, w: 380 },
+      cursor: { x: 240, y: 475 },
+      nextLabel: "Open Timesheet",
+      next: async () => { await moveTo(28, 352); await click(); }
+    },
+
+    /* 23. Timesheet – Outline 1: Reported Entries & 2: Unreported Entries */
+    {
+      screen: "timesheet",
+      tag: "Timesheet",
+      title: "Reported & Unreported Entries",
+      body: "Auto-detected project activities appear under Reported Entries, while unallocated system activities appear on the right.",
+      points: [
+        "1. Reported Entries: Edge (1h) & Autodesk Revit (2h 4m)",
+        "2. Unreported Entries: 4h 36m unallocated (AutoCAD, Edge, Bluebeam)"
+      ],
+      holes: [
+        { x: 98, y: 321, w: 1522, h: 402, n: 1, label: "Reported Entries" },
+        { x: 1638, y: 138, w: 262, h: 765, n: 2, label: "Unreported Entries" }
+      ],
+      callout: { x: 680, y: 742, w: 385 },
+      cursor: { x: 780, y: 520 },
+      nextLabel: "Next: Map Task"
+    },
+
+    /* 24. Timesheet – Outline 3: Map Task (cursor moves to Map Task) */
+    {
+      screen: "timesheet",
+      tag: "Timesheet · Map Task",
+      title: "3. Map Task to Project",
+      body: "Click Map Task on a reported entry to assign it to a project stage and task.",
+      points: [
+        "Click Map Task on the 2h 4m Revit entry"
+      ],
+      holes: [
+        { x: 1548, y: 586, w: 61, h: 31, n: 3, label: "Map Task" }
+      ],
+      pulses: [{ x: 1548, y: 586, w: 61, h: 31 }],
+      hotspots: [{ x: 1546, y: 584, w: 65, h: 35, title: "Click Map Task" }],
+      callout: { x: 680, y: 742, w: 375 },
+      cursor: { x: 1450, y: 602 },
+      nextLabel: "Map Task",
+      next: async () => { await moveTo(1579, 602); await click(); }
+    },
+
+    /* 25. Timesheet Map Details (Timesheet Map Details.png) -> + Add another task & Save tasks */
+    {
+      screen: "tsMapDetails",
+      tag: "Map Task to Project",
+      title: "Map Task & Split Activity",
+      body: "Select Stage, Milestone, and Task (2h 4m → Architectural Site Plan), or click + Add another task to split the same activity across multiple tasks.",
+      points: [
+        "1. Stage A · Architectural Site Plan (02:04)",
+        "2. + Add another task: map 1 activity to multiple tasks"
+      ],
+      holes: [
+        { x: 700, y: 318, w: 516, h: 325, n: 1, label: "Stage, Milestone, Task & Hours (02:04)" },
+        { x: 700, y: 651, w: 516, h: 40, n: 2, label: "Map Same Activity to Multiple Tasks" }
+      ],
+      pulses: [{ x: 1132, y: 722, w: 88, h: 38 }],
+      hotspots: [{ x: 1132, y: 722, w: 88, h: 38, title: "Click Save tasks" }],
+      callout: { x: 1260, y: 490, w: 385 },
+      cursor: { x: 958, y: 670 },
+      nextLabel: "Save Tasks",
+      next: async () => { await moveTo(1176, 742); await click(); }
+    },
+
+    /* 29. Reported & Unreported Entries Mapped to Task (Map to task.png) */
+    {
+      screen: "mapToTask",
+      tag: "Mapped to Task",
+      title: "Reported & Unreported Entries Mapped",
+      body: "Both reported and unreported project entries are similarly mapped to Architectural Site Plan.",
+      points: [
+        "1. Reported mapped: Microsoft Edge (1h 56m) & Revit (2h 4m)",
+        "2. Unreported mapped: AutoCAD (2h 30m) & Bluebeam (1h)"
+      ],
+      holes: [
+        { x: 128, y: 152, w: 1424, h: 324, n: 1, label: "Reported Entries Mapped (1h 56m & 2h 4m)" },
+        { x: 128, y: 498, w: 1424, h: 345, n: 2, label: "Unreported Entries Mapped (2h 30m & 1h)", markerX: 520, markerY: 498 }
+      ],
+      callout: { x: 1500, y: 515, w: 390 },
+      cursor: { x: 750, y: 615 },
+      nextLabel: "View Updated Summary"
+    },
+
+    /* 27. Updated Timesheet Summary at Top (Details of Timesheet.png) */
+    {
+      screen: "tsDetails",
+      tag: "Timesheet Summary",
+      title: "Updated Hours Summary",
+      body: "Total Logged & Billable Hours update to 7.5h, with Unallocated Hours reduced to 1.4h.",
+      points: [
+        "1. 7.5 Logged & Billable Hours · 6.3 Screen Hours",
+        "2. Project Total: Logged 7h 30m · Screen 6h 14m"
+      ],
+      holes: [
+        { x: 119, y: 160, w: 1464, h: 92, n: 1, label: "Updated Timesheet Summary (7.5h Logged)" },
+        { x: 119, y: 328, w: 1464, h: 61, n: 2, label: "Project Total: Logged 7h 30m · Screen 6h 14m" }
+      ],
+      callout: { x: 780, y: 530, w: 385 },
+      cursor: { x: 520, y: 210 },
+      nextLabel: "Next: Weekly Approval"
+    },
+
+    /* 28. Weekly View for Manager Approval (Details of Timesheet.png) */
+    {
+      screen: "tsDetails",
+      tag: "Weekly Approval",
+      title: "3. Weekly View & Manager Approval",
+      body: "You can switch to the Weekly view to submit the timesheet for Project Manager approval. Next, click Project on the sidebar to view synced hours on the workplan.",
+      points: [
+        "Weekly view lets managers review & approve timesheets",
+        "Click Project on the left sidebar to open the Workplan"
+      ],
+      holes: [
+        { x: 1722, y: 90, w: 72, h: 36, n: 3, label: "Weekly View" }
+      ],
+      pulses: [{ x: 18, y: 274, w: 68, h: 72 }],
+      hotspots: [{ x: 18, y: 274, w: 68, h: 72, title: "Click Project" }],
+      callout: { x: 1320, y: 160, w: 395 },
+      cursor: { x: 1650, y: 108 },
+      nextLabel: "Go to Project",
+      next: async () => { await moveTo(52, 310); await click(); }
+    },
+
+    /* 29. Workplan Builder (Workplan builder.png) – In Progress & Click on Architectural Site Plan */
+    {
+      screen: "workplanBuilder",
+      tag: "Project Workplan",
+      title: "Workplan Status Updated to In Progress",
+      body: "Stage A and 30% Schematic Design update to In Progress, and Architectural Site Plan turns active. Click the task to inspect synced hours.",
+      points: [
+        "1. Stage A & Milestone status updated to In Progress",
+        "2. Click Architectural Site Plan (10h · Active)"
+      ],
+      holes: [
+        { x: 100, y: 356, w: 326, h: 108, n: 1, label: "Stage A & Milestone: In Progress" },
+        { x: 112, y: 478, w: 424, h: 24, n: 2, label: "Architectural Site Plan (10h · Active)", markerX: 552, markerY: 490 }
+      ],
+      pulses: [{ x: 110, y: 476, w: 318, h: 26 }],
+      hotspots: [{ x: 108, y: 474, w: 428, h: 30, title: "Click Architectural Site Plan" }],
+      callout: { x: 1120, y: 430, w: 390 },
+      cursor: { x: 520, y: 489 },
+      nextLabel: "Open Task View",
+      next: async () => { await moveTo(185, 489); await click(); }
+    },
+
+    /* 34. Task Details (task details.png) – Outline 1: Actual Hours of Task */
+    {
+      screen: "taskDetails",
+      tag: "Task View · 1",
+      title: "1. Task Actual Hours",
+      body: "Task View displays the total assigned hours alongside the actual hours logged from approved timesheets.",
+      points: [
+        "10 hrs Assigned · 12.5 hrs actual (Tony 5h + Rachel 7.5h)"
+      ],
+      holes: [
+        { x: 1122, y: 165, w: 168, h: 80, n: 1, label: "Task Actual Hours (12.5 hrs)" }
+      ],
+      callout: { x: 1180, y: 575, w: 390 },
+      cursor: { x: 1200, y: 210 },
+      nextLabel: "Next"
+    },
+
+    /* 35. Task Details (task details.png) – Outline 2: Rachel Zane's Actual Hours */
+    {
+      screen: "taskDetails",
+      tag: "Task View · 2",
+      title: "2. Rachel's Actual Hours from Timesheet",
+      body: "Under Task Hours & Allocation, Rachel Zane's approved timesheet hours (7.5 hrs) are automatically reflected.",
+      points: [
+        "Rachel Zane (Jr. Architect): 5 hrs Assigned · 7.5 hrs Actual"
+      ],
+      holes: [
+        { x: 1388, y: 336, w: 492, h: 66, n: 2, label: "Rachel's Actual Hours (7.5 hrs)" }
+      ],
+      callout: { x: 1180, y: 575, w: 390 },
+      cursor: { x: 1640, y: 368 },
+      nextLabel: "Project Team View"
+    },
+
+    /* 42. Project Team Dashboard (Project Team Dashboard Updated.png) – Outline 1: Actual Hours Rollup */
+    {
+      screen: "teamDashboard",
+      tag: "Project Team · 1",
+      title: "1. Project & Stage Actual Hours",
+      body: "In the Project Team tab, approved timesheet hours automatically roll up into the project and stage actuals.",
+      points: [
+        "48.00 hr Assigned · 12.50 hr Total Actual (Tony 5h + Rachel 7.5h)"
+      ],
+      holes: [
+        { x: 112, y: 192, w: 1678, h: 66, n: 1, label: "Project Actual Hours (12.50 hr)" },
+        { x: 122, y: 566, w: 528, h: 42, n: 2, label: "Stage A Actual: 12.50 hr / 48.00 hr Allocated" }
+      ],
+      callout: { x: 740, y: 470, w: 390 },
+      cursor: { x: 1320, y: 225 },
+      nextLabel: "Next: Progress Rate"
+    },
+
+    /* 43. Project Team Dashboard – Outline 2: Progress Rate Updated from Timesheet -> click Documents */
+    {
+      screen: "teamDashboard",
+      tag: "Project Team · 2",
+      title: "2. Progress Rate Updated from Timesheet",
+      body: "Each member's Progress Rate and Task Status update automatically as timesheets are filled and approved.",
+      points: [
+        "Tony Stark: 5.00 / 29.00 hr → 17.24% Progress (On Track)",
+        "Rachel Zane: 7.50 / 19.00 hr → 39.47% Progress (On Track)"
+      ],
+      holes: [
+        { x: 825, y: 660, w: 325, h: 168, n: 1, label: "Actual Hours & Progress Rate" },
+        { x: 302, y: 126, w: 78, h: 26, n: 2, label: "Documents Tab", markerX: 392, markerY: 138 }
+      ],
+      pulses: [{ x: 302, y: 126, w: 78, h: 26 }],
+      hotspots: [{ x: 300, y: 124, w: 82, h: 30, title: "Click Documents tab" }],
+      callout: { x: 740, y: 405, w: 395 },
+      cursor: { x: 1020, y: 800 },
+      nextLabel: "Open Documents",
+      next: async () => { await moveTo(341, 139); await click(); }
+    },
+
+    /* 44. Documents (folder.png) – Outline 1: Shared Folders & Teammate Access */
+    {
+      screen: "documents",
+      tag: "Documents · 1",
+      title: "1. Shared Folders & Teammate Access",
+      body: "Create project folders and share access with teammates (PM, PIC & Architects). Live Trackers also lets you upload Excel, DOCX, or PPTX links.",
+      points: [
+        "Folder shared with Amanda Ross (PM), Natalie Brooks (PIC) & Tony Stark",
+        "Live Trackers tab: upload live Excel, DOCX, or PPTX links"
+      ],
+      holes: [
+        { x: 125, y: 352, w: 504, h: 220, n: 1, label: "Shared Folders & Teammate Access", markerX: 332, markerY: 350 }
+      ],
+      notesAbove: [
+        { x: 335, y: 192, text: "Live Trackers: Upload live Excel, DOCX, or PPTX links here" }
+      ],
+      callout: { x: 960, y: 340, w: 405 },
+      cursor: { x: 260, y: 480 },
+      nextLabel: "Next: Shared Files"
+    },
+
+    /* 45. Documents (folder.png) – Outline 2: Shared Project Files */
+    {
+      screen: "documents",
+      tag: "Documents · 2",
+      title: "2. Shared Project Files & Live Trackers",
+      body: "Upload, preview, edit, or download shared project files, or switch to Live Trackers for live Excel/DOCX/PPTX links.",
+      points: [
+        "Final Draft (.PDF) & SOW (.PDF) shared with teammates",
+        "Live Trackers: upload live Excel, DOCX, or PPTX links"
+      ],
+      holes: [
+        { x: 125, y: 584, w: 1765, h: 222, n: 2, label: "Shared Files (Final Draft.PDF, SOW.PDF)" }
+      ],
+      notesAbove: [
+        { x: 335, y: 192, text: "Live Trackers: Upload live Excel, DOCX, or PPTX links here" }
+      ],
+      callout: { x: 960, y: 340, w: 405 },
+      cursor: { x: 420, y: 700 },
+      nextLabel: "Restart demo",
+      restart: true
+    }
+  ];
+
+  /* ------------------------------------------------------------------
+   * DOM refs
+   * ------------------------------------------------------------------ */
+  const $ = (id) => document.getElementById(id);
+  const viewport = $("viewport"), frame = $("frame"), stage = $("stage"), shot = $("shot");
+  const dim = $("dim"), fakeLayer = $("fakeLayer"), markLayer = $("markLayer"), calloutLayer = $("calloutLayer");
+  const cursor = $("cursor"), intro = $("intro"), progress = $("progress"), stepLabel = $("stepLabel"), urlEl = $("url");
+  const SVG_NS = "http://www.w3.org/2000/svg";
+  const CHROME_H = 34;
+
+  let index = 0;
+  let busy = false;
+  let started = false;
+  let currentScreen = null;
+
+  /* ------------------------------------------------------------------
+   * Geometry helpers (image px → % of stage)
+   * ------------------------------------------------------------------ */
+  const effH = (s) => s.h - s.crop;
+  const px = (s, x) => (x / s.w) * 100 + "%";
+  const py = (s, y) => ((y - s.crop) / effH(s)) * 100 + "%";
+  const pw = (s, w) => (w / s.w) * 100 + "%";
+  const ph = (s, h) => (h / effH(s)) * 100 + "%";
+
+  function place(el, s, r) {
+    el.style.left = px(s, r.x);
+    el.style.top = py(s, r.y);
+    if (r.w !== undefined) el.style.width = pw(s, r.w);
+    if (r.h !== undefined) el.style.height = ph(s, r.h);
+  }
+
+  function fit() {
+    const s = SCREENS[currentScreen || "projects"];
+    const aspect = s.w / effH(s);
+    const availW = viewport.clientWidth - 48;
+    const availH = viewport.clientHeight - 18 - CHROME_H;
+    const width = Math.max(320, Math.min(availW, availH * aspect));
+    frame.style.width = width + "px";
+    stage.style.width = width + "px";
+    stage.style.height = width / aspect + "px";
+  }
+
+  /* ------------------------------------------------------------------
+   * Timing helpers (Web Animations API)
+   * ------------------------------------------------------------------ */
+  async function moveTo(x, y, duration = 850) {
+    cursor.style.display = "block";
+    const s = SCREENS[currentScreen];
+    const toLeft = px(s, x), toTop = py(s, y);
+    const from = { left: cursor.style.left || "50%", top: cursor.style.top || "50%" };
+    const anim = cursor.animate(
+      [from, { left: toLeft, top: toTop }],
+      { duration, easing: "cubic-bezier(.45,.05,.25,1)", fill: "forwards" }
+    );
+    await anim.finished;
+    cursor.style.left = toLeft;
+    cursor.style.top = toTop;
+    anim.cancel();
+  }
+
+  function setCursor(x, y) {
+    const s = SCREENS[currentScreen];
+    cursor.style.left = px(s, x);
+    cursor.style.top = py(s, y);
+  }
+
+  async function click() {
+    const r = document.createElement("div");
+    r.className = "ripple";
+    r.style.left = cursor.style.left;
+    r.style.top = cursor.style.top;
+    stage.appendChild(r);
+    cursor.animate([{ transform: "scale(1)" }, { transform: "scale(.82)" }, { transform: "scale(1)" }], { duration: 260 });
+    await r.animate(
+      [{ opacity: 1, transform: "translate(-50%,-50%) scale(.2)" }, { opacity: 0, transform: "translate(-50%,-50%) scale(1.4)" }],
+      { duration: 500, easing: "ease-out" }
+    ).finished;
+    r.remove();
+  }
+
+  /* ------------------------------------------------------------------
+   * Fake UI overlays
+   * ------------------------------------------------------------------ */
+  function chipsField(screenKey, x, y, w, h, items) {
+    const s = SCREENS[screenKey];
+    const el = document.createElement("div");
+    el.className = "fake-field";
+    place(el, s, { x, y, w, h });
+    items.forEach((t) => {
+      const c = document.createElement("span");
+      c.className = "chip";
+      c.textContent = t;
+      el.appendChild(c);
+    });
+    return el;
+  }
+
+  function fakeText(screenKey, x, y, w, h, strong, rest) {
+    const el = document.createElement("div");
+    el.className = "fake-text";
+    place(el, SCREENS[screenKey], { x, y, w, h });
+    const b = document.createElement("strong");
+    b.textContent = strong;
+    el.append(b, document.createTextNode(rest));
+    return el;
+  }
+
+  function fakeButton(screenKey, x, y, w, h, label, variant) {
+    const el = document.createElement("div");
+    el.className = "fake-btn" + (variant ? " " + variant : "");
+    place(el, SCREENS[screenKey], { x, y, w, h });
+    el.textContent = label;
+    return el;
+  }
+
+  /* ------------------------------------------------------------------
+   * Rendering (Reduced overlay opacity: 0.22)
+   * ------------------------------------------------------------------ */
+  function drawDim(scene, s) {
+    dim.setAttribute("viewBox", `0 0 ${s.w} ${effH(s)}`);
+    dim.replaceChildren();
+    if (scene.noDim) return;
+
+    const holes = scene.holes || [];
+    const maskId = "m" + Math.random().toString(36).slice(2);
+    const defs = document.createElementNS(SVG_NS, "defs");
+    const mask = document.createElementNS(SVG_NS, "mask");
+    mask.setAttribute("id", maskId);
+    const base = rect(0, 0, s.w, effH(s), 0);
+    base.setAttribute("fill", "white");
+    mask.appendChild(base);
+    holes.forEach((h) => {
+      const r = rect(h.x - 6, h.y - s.crop - 6, h.w + 12, h.h + 12, 12);
+      r.setAttribute("fill", "black");
+      mask.appendChild(r);
+    });
+    defs.appendChild(mask);
+    dim.appendChild(defs);
+
+    const shade = rect(0, 0, s.w, effH(s), 0);
+    shade.setAttribute("fill", "rgba(15, 23, 42, 0.22)");
+    shade.setAttribute("mask", `url(#${maskId})`);
+    dim.appendChild(shade);
+
+    holes.forEach((h) => {
+      const o = rect(h.x - 6, h.y - s.crop - 6, h.w + 12, h.h + 12, 12);
+      o.setAttribute("class", "outline");
+      dim.appendChild(o);
+    });
+    dim.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 350 });
+  }
+
+  function rect(x, y, w, h, r) {
+    const el = document.createElementNS(SVG_NS, "rect");
+    el.setAttribute("x", x); el.setAttribute("y", y);
+    el.setAttribute("width", w); el.setAttribute("height", h);
+    el.setAttribute("rx", r); el.setAttribute("ry", r);
+    return el;
+  }
+
+  function drawMarks(scene, s) {
+    markLayer.replaceChildren();
+    (scene.pulses || []).forEach((p) => {
+      const el = document.createElement("div");
+      el.className = "pulse";
+      place(el, s, p);
+      markLayer.appendChild(el);
+    });
+    (scene.hotspots || []).forEach((hs) => {
+      const el = document.createElement("div");
+      el.className = "hotspot";
+      if (hs.title) el.title = hs.title;
+      place(el, s, hs);
+      el.addEventListener("click", goNext);
+      markLayer.appendChild(el);
+    });
+    (scene.holes || []).filter((h) => h.n).forEach((h) => {
+      const m = document.createElement("div");
+      m.className = "marker";
+      const rawX = h.markerX !== undefined ? h.markerX : h.x - 4;
+      const rawY = h.markerY !== undefined ? h.markerY : h.y - 4;
+      const safeX = Math.min(s.w - 150, Math.max(16, rawX));
+      place(m, s, { x: safeX, y: rawY });
+      const b = document.createElement("b");
+      b.textContent = h.n;
+      m.appendChild(b);
+      if (h.label) {
+        const l = document.createElement("span");
+        l.textContent = h.label;
+        m.appendChild(l);
+      }
+      markLayer.appendChild(m);
+      const stageW = stage.clientWidth;
+      if (stageW > 0 && m.offsetLeft + m.offsetWidth > stageW - 10) {
+        const clampedLeft = Math.max(8, stageW - m.offsetWidth - 10);
+        m.style.left = (clampedLeft / stageW) * 100 + "%";
+      }
+    });
+    (scene.notesAbove || []).forEach((na) => {
+      const n = document.createElement("div");
+      n.className = "note-above";
+      place(n, s, { x: na.x, y: na.y });
+      n.textContent = na.text;
+      markLayer.appendChild(n);
+    });
+  }
+
+  function drawCallout(scene, s) {
+    calloutLayer.replaceChildren();
+    const c = document.createElement("section");
+    c.className = "callout";
+    c.setAttribute("role", "dialog");
+    c.setAttribute("aria-label", scene.title);
+    place(c, s, { x: scene.callout.x, y: scene.callout.y, w: scene.callout.w });
+
+    const tag = document.createElement("span");
+    tag.className = "tag";
+    tag.textContent = scene.tag;
+    const h = document.createElement("h3");
+    h.textContent = scene.title;
+    const p = document.createElement("p");
+    p.textContent = scene.body;
+    const ul = document.createElement("ul");
+    scene.points.forEach((t) => { const li = document.createElement("li"); li.textContent = t; ul.appendChild(li); });
+
+    const actions = document.createElement("div");
+    actions.className = "actions";
+    const count = document.createElement("span");
+    count.className = "count";
+    count.textContent = `${index + 1} / ${SCENES.length}`;
+    const btns = document.createElement("div");
+    btns.className = "btns";
+    const back = document.createElement("button");
+    back.type = "button";
+    back.className = "btn btn-ghost";
+    back.textContent = "← Back";
+    back.disabled = index === 0;
+    back.addEventListener("click", goBack);
+    const next = document.createElement("button");
+    next.type = "button";
+    next.className = "btn btn-primary";
+    next.id = "nextBtn";
+    next.textContent = (scene.nextLabel || "Next") + (scene.restart ? " ↺" : " →");
+    next.addEventListener("click", goNext);
+    btns.append(back, next);
+    actions.append(count, btns);
+
+    c.append(tag, h, p, ul, actions);
+    calloutLayer.appendChild(c);
+    const stageH = stage.clientHeight;
+    if (stageH > 0 && c.offsetTop + c.offsetHeight > stageH - 12) {
+      const clampedTop = Math.max(8, stageH - c.offsetHeight - 12);
+      c.style.top = (clampedTop / stageH) * 100 + "%";
+    }
+    next.focus({ preventScroll: true });
+  }
+
+  function drawProgress() {
+    progress.replaceChildren();
+    SCENES.forEach((sc, i) => {
+      const d = document.createElement("button");
+      d.type = "button";
+      d.className = "dot" + (i === index ? " active" : i < index ? " done" : "");
+      d.setAttribute("aria-label", `Go to step ${i + 1}: ${sc.title}`);
+      d.addEventListener("click", () => { if (!busy && started) render(i, { instant: true }); });
+      progress.appendChild(d);
+    });
+    stepLabel.textContent = `${index + 1}/${SCENES.length} · ${SCENES[index].tag}`;
+  }
+
+  async function swapScreen(key) {
+    if (currentScreen === key) return;
+    const s = SCREENS[key];
+    const screenEl = $("screen");
+    if (currentScreen) await screenEl.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, fill: "forwards" }).finished;
+    currentScreen = key;
+    shot.src = s.src;
+    shot.alt = key + " screen";
+    shot.style.top = (-s.crop / effH(s)) * 100 + "%";
+    shot.style.height = (s.h / effH(s)) * 100 + "%";
+    urlEl.textContent = s.url;
+    fit();
+    await screenEl.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 260, fill: "forwards" }).finished;
+  }
+
+  async function render(i, opts = {}) {
+    index = i;
+    const scene = SCENES[i];
+    calloutLayer.replaceChildren();
+    markLayer.replaceChildren();
+    fakeLayer.replaceChildren();
+    dim.replaceChildren();
+    const prevScreen = currentScreen;
+    const keepLeft = cursor.style.left, keepTop = cursor.style.top;
+    await swapScreen(scene.screen);
+    if (prevScreen !== currentScreen) { cursor.style.left = keepLeft; cursor.style.top = keepTop; }
+
+    const s = SCREENS[scene.screen];
+    if (scene.fakes) scene.fakes(scene).forEach((el) => fakeLayer.appendChild(el));
+    drawDim(scene, s);
+    drawMarks(scene, s);
+    drawProgress();
+    if (scene.hideCursor) {
+      cursor.style.display = "none";
+    } else {
+      cursor.style.display = "block";
+      if (scene.cursor) {
+        if (opts.instant) setCursor(scene.cursor.x, scene.cursor.y);
+        else await moveTo(scene.cursor.x, scene.cursor.y, 650);
+      }
+    }
+    drawCallout(scene, s);
+  }
+
+  async function goNext() {
+    if (busy || !started) return;
+    busy = true;
+    const scene = SCENES[index];
+    const nb = $("nextBtn");
+    if (nb) nb.disabled = true;
+    try {
+      if (scene.restart) { await restart(); return; }
+      calloutLayer.replaceChildren();
+      if (scene.next) await scene.next();
+      await render(Math.min(index + 1, SCENES.length - 1));
+    } finally {
+      busy = false;
+    }
+  }
+
+  async function goBack() {
+    if (busy || !started || index === 0) return;
+    busy = true;
+    try { await render(index - 1, { instant: true }); } finally { busy = false; }
+  }
+
+  async function restart() {
+    await render(0, { instant: true });
+  }
+
+  async function start() {
+    if (started) return;
+    started = true;
+    await intro.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 280, fill: "forwards" }).finished;
+    intro.remove();
+    busy = true;
+    try { await render(0); } finally { busy = false; }
+  }
+
+  /* ------------------------------------------------------------------
+   * Boot
+   * ------------------------------------------------------------------ */
+  Object.values(SCREENS).forEach((s) => { const im = new Image(); im.src = s.src; });
+  currentScreen = null;
+  swapScreen("projects").then(() => setCursor(960, 460));
+  window.addEventListener("resize", fit);
+  $("startBtn").addEventListener("click", start);
+  $("startBtn").focus();
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowRight" || e.key === " " || e.key === "Enter") {
+      e.preventDefault();
+      if (!started) start(); else goNext();
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault(); goBack();
+    } else if (e.key === "r" || e.key === "R") {
+      if (started && !busy) { busy = true; restart().finally(() => { busy = false; }); }
+    }
+  });
+})();
+</script>
+</body>
+</html>

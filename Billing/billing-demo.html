@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Avyro – Billing &amp; Workplan Walkthrough Demo</title>
+  <style>
+    :root {
+      --brand: #2563eb;
+      --brand-2: #7c3aed;
+      --ink: #0f172a;
+      --muted: #475569;
+      --bg: #0b1020;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      height: 100%;
+    }
+
+    body {
+      font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+      background:
+        radial-gradient(900px 520px at 14% 8%, rgba(37, 99, 235, .18), transparent 64%),
+        radial-gradient(760px 460px at 88% 92%, rgba(16, 185, 129, .12), transparent 68%),
+        #050814;
+      color: #e2e8f0;
+      overflow: hidden;
+    }
+
+    /* ---------- Top bar ---------- */
+    .topbar {
+      position: fixed;
+      left: 50%;
+      bottom: 16px;
+      z-index: 100;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 10px 8px 14px;
+      gap: 14px;
+      min-height: 46px;
+      border: 1px solid rgba(148, 163, 184, .24);
+      border-radius: 16px;
+      background: rgba(9, 14, 31, .82);
+      box-shadow: 0 18px 48px rgba(0, 0, 0, .38);
+      backdrop-filter: blur(18px);
+    }
+
+    .brand {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      letter-spacing: .2px;
+    }
+
+    .brand-logo {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #f97316, #ec4899 40%, var(--brand-2) 70%, var(--brand));
+    }
+
+    .brand small {
+      display: block;
+      font-weight: 500;
+      color: #94a3b8;
+      font-size: 12px;
+    }
+
+    .progress {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #334155;
+      border: 0;
+      padding: 0;
+      cursor: pointer;
+      transition: all .3s;
+    }
+
+    .dot.done {
+      background: #64748b;
+    }
+
+    .dot.active {
+      background: var(--brand);
+      width: 28px;
+      border-radius: 6px;
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, .14);
+    }
+
+    .step-label {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .05em;
+      color: #cbd5e1;
+      min-width: 116px;
+      text-align: left;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .present-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      min-height: 30px;
+      padding: 0 11px;
+      border: 1px solid rgba(148, 163, 184, .3);
+      border-radius: 9px;
+      background: rgba(30, 41, 59, .78);
+      color: #e2e8f0;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .present-btn:hover {
+      background: #1e3a8a;
+      border-color: #3b82f6;
+    }
+
+    .present-btn:focus-visible {
+      outline: 3px solid rgba(147, 197, 253, .9);
+      outline-offset: 2px;
+    }
+
+    /* ---------- Stage ---------- */
+    .viewport {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px 22px 76px;
+      min-height: 0;
+    }
+
+    .frame {
+      border: 1px solid rgba(148, 163, 184, .22);
+      border-radius: 18px;
+      overflow: hidden;
+      background: #fff;
+      box-shadow:
+        0 34px 90px rgba(0, 0, 0, .58),
+        0 0 0 1px rgba(255, 255, 255, .035),
+        0 0 72px rgba(37, 99, 235, .08);
+    }
+
+    .chrome {
+      height: 34px;
+      background: #eef2f7;
+      border-bottom: 1px solid #dbe3ee;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 14px;
+    }
+
+    .chrome i {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .chrome i:nth-child(1) {
+      background: #f87171;
+    }
+
+    .chrome i:nth-child(2) {
+      background: #fbbf24;
+    }
+
+    .chrome i:nth-child(3) {
+      background: #34d399;
+    }
+
+    .url {
+      margin-left: 14px;
+      flex: 1;
+      max-width: 700px;
+      height: 22px;
+      border-radius: 11px;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      color: #475569;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+    }
+
+    .stage {
+      position: relative;
+      overflow: hidden;
+      container-type: inline-size;
+      background: #fff;
+    }
+
+    .screen {
+      position: absolute;
+      inset: 0;
+    }
+
+    .screen img {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    /* ---------- Overlay layers ---------- */
+    .dim {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .dim .outline {
+      fill: none;
+      stroke: var(--brand);
+      stroke-width: 2.5;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .layer>* {
+      pointer-events: auto;
+    }
+
+    .pulse {
+      position: absolute;
+      border: 2.5px solid #f59e0b;
+      border-radius: 8px;
+      animation: pulse 1.6s ease-out infinite;
+      pointer-events: none;
+    }
+
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(245, 158, 11, .7);
+      }
+
+      100% {
+        box-shadow: 0 0 0 1.2cqw rgba(245, 158, 11, 0);
+      }
+    }
+
+    .hotspot {
+      position: absolute;
+      cursor: pointer;
+      border-radius: 8px;
+      background: rgba(37, 99, 235, 0);
+      transition: background .2s;
+    }
+
+    .hotspot:hover {
+      background: rgba(37, 99, 235, .12);
+    }
+
+    .marker {
+      position: absolute;
+      transform: translate(0, -50%);
+      display: flex;
+      align-items: center;
+      gap: .4cqw;
+      pointer-events: none;
+      animation: pop .35s ease-out both;
+    }
+
+    .marker b {
+      width: 1.55cqw;
+      height: 1.55cqw;
+      min-width: 19px;
+      min-height: 19px;
+      border-radius: 50%;
+      background: var(--brand);
+      color: #fff;
+      font-size: max(10px, .78cqw);
+      display: grid;
+      place-items: center;
+      box-shadow: 0 0 0 3px #fff, 0 4px 10px rgba(0, 0, 0, .3);
+    }
+
+    .marker span {
+      background: var(--ink);
+      color: #fff;
+      font-size: max(10px, .7cqw);
+      font-weight: 600;
+      padding: .22cqw .55cqw;
+      border-radius: 999px;
+      white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, .25);
+    }
+
+    @keyframes pop {
+      from {
+        opacity: 0;
+        transform: translate(0, -50%) scale(.6);
+      }
+    }
+
+    .note-above {
+      position: absolute;
+      transform: translate(-50%, -115%);
+      background: var(--ink);
+      color: #fff;
+      font-size: max(10px, .72cqw);
+      font-weight: 600;
+      padding: .35cqw .75cqw;
+      border-radius: .5cqw;
+      white-space: nowrap;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, .3);
+      border: 1.5px solid #3b82f6;
+      pointer-events: none;
+      animation: popNote .35s ease-out both;
+    }
+
+    .note-above::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -6px;
+      transform: translateX(-50%);
+      border-width: 6px 6px 0 6px;
+      border-style: solid;
+      border-color: var(--ink) transparent transparent transparent;
+    }
+
+    @keyframes popNote {
+      from {
+        opacity: 0;
+        transform: translate(-50%, -100%) scale(.85);
+      }
+    }
+
+    /* ---------- Ultra-compact, easy-to-read callout ---------- */
+    .callout {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.98);
+      color: var(--ink);
+      backdrop-filter: blur(8px);
+      border-radius: .65cqw;
+      padding: .55cqw .75cqw .5cqw;
+      box-shadow: 0 14px 34px rgba(15, 23, 42, .22), 0 0 0 1px rgba(15, 23, 42, .08);
+      font-size: clamp(9.5px, .65cqw, 12px);
+      line-height: 1.28;
+      animation: calloutIn .3s cubic-bezier(.2, .8, .2, 1) both;
+      border-top: .2cqw solid var(--brand);
+    }
+
+    @keyframes calloutIn {
+      from {
+        opacity: 0;
+        transform: translateY(.6cqw) scale(.98);
+      }
+    }
+
+    .callout .tag {
+      display: inline-flex;
+      align-items: center;
+      font-size: .7em;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--brand);
+      background: #eff6ff;
+      padding: .15em .55em;
+      border-radius: 999px;
+    }
+
+    .callout h3 {
+      margin: .3em 0 .15em;
+      font-size: 1.15em;
+      line-height: 1.2;
+      font-weight: 700;
+    }
+
+    .callout p {
+      margin: 0 0 .35em;
+      color: var(--muted);
+    }
+
+    .callout ul {
+      margin: 0 0 .48em;
+      padding: 0;
+      list-style: none;
+    }
+
+    .callout li {
+      position: relative;
+      padding-left: 1.15em;
+      margin: .12em 0;
+      color: #334155;
+      font-weight: 500;
+    }
+
+    .callout li::before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      top: 0;
+      color: #16a34a;
+      font-weight: 700;
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .5em;
+      border-top: 1px solid #e2e8f0;
+      padding-top: .48em;
+    }
+
+    .actions .count {
+      color: #94a3b8;
+      font-size: .82em;
+    }
+
+    .btns {
+      display: flex;
+      gap: .4em;
+    }
+
+    .btn {
+      font: inherit;
+      font-size: .9em;
+      font-weight: 600;
+      border-radius: .5em;
+      padding: .4em .85em;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: transform .15s, box-shadow .15s, background .15s;
+    }
+
+    .btn:focus-visible {
+      outline: 3px solid #93c5fd;
+      outline-offset: 2px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--brand), var(--brand-2));
+      color: #fff;
+      box-shadow: 0 6px 16px rgba(37, 99, 235, .32);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 22px rgba(37, 99, 235, .42);
+    }
+
+    .btn-ghost {
+      background: #fff;
+      color: #334155;
+      border-color: #cbd5e1;
+    }
+
+    .btn-ghost:hover {
+      background: #f8fafc;
+    }
+
+    .btn[disabled] {
+      opacity: .5;
+      cursor: default;
+      transform: none;
+    }
+
+    /* ---------- Cursor ---------- */
+    .cursor {
+      position: absolute;
+      width: 1.5cqw;
+      min-width: 18px;
+      z-index: 50;
+      pointer-events: none;
+      transform-origin: 0 0;
+      filter: drop-shadow(0 3px 4px rgba(0, 0, 0, .35));
+    }
+
+    .cursor svg {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .ripple {
+      position: absolute;
+      width: 3cqw;
+      height: 3cqw;
+      border-radius: 50%;
+      z-index: 49;
+      border: 3px solid var(--brand);
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    /* ---------- Intro ---------- */
+    .intro {
+      position: absolute;
+      inset: 0;
+      z-index: 60;
+      display: grid;
+      place-items: center;
+      background: rgba(15, 23, 42, .45);
+      backdrop-filter: blur(4px);
+    }
+
+    .intro-card {
+      background: #fff;
+      color: var(--ink);
+      border-radius: 1.2cqw;
+      padding: 2cqw 2.4cqw;
+      width: 48%;
+      text-align: center;
+      font-size: clamp(11px, .9cqw, 16.5px);
+      box-shadow: 0 30px 80px rgba(0, 0, 0, .4);
+    }
+
+    .intro-card h1 {
+      font-size: 1.85em;
+      margin: .3em 0 .25em;
+      line-height: 1.2;
+    }
+
+    .intro-card p {
+      color: var(--muted);
+      margin: 0 0 1.1em;
+    }
+
+    .flow {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: .4em;
+      margin-bottom: 1.3em;
+    }
+
+    .flow span {
+      font-size: .76em;
+      background: #f1f5f9;
+      color: #334155;
+      padding: .32em .68em;
+      border-radius: 999px;
+    }
+
+    .flow span+span::before {
+      content: "→ ";
+      color: #94a3b8;
+    }
+
+    .hint {
+      display: none;
+    }
+
+    kbd {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-size: 11px;
+    }
+
+    @media (max-width: 760px) {
+      .viewport {
+        padding: 10px 10px 68px;
+      }
+
+      .topbar {
+        bottom: 10px;
+        gap: 9px;
+        max-width: calc(100vw - 20px);
+      }
+
+      .step-label {
+        display: none;
+      }
+
+      .present-btn span:last-child {
+        display: none;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+      *,
+      *::before,
+      *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-logo" aria-hidden="true"></div>
+      <div>Avyro<small>Billing · Converted Project &amp; Billing Workplan</small></div>
+    </div>
+    <nav class="progress" id="progress" aria-label="Demo steps"></nav>
+    <div class="step-label" id="stepLabel" aria-live="polite"></div>
+    <button class="present-btn" id="fullScreenBtn" type="button" title="Toggle full screen (F)">
+      <span aria-hidden="true">⛶</span><span>Present</span>
+    </button>
+  </header>
+
+  <main class="viewport" id="viewport">
+    <div class="frame" id="frame">
+      <div class="chrome" aria-hidden="true"><i></i><i></i><i></i>
+        <div class="url" id="url">demo.avyro.in/dashboard/billing-&amp;-invoice/projects</div>
+      </div>
+      <div class="stage" id="stage">
+        <div class="screen" id="screen"><img id="shot" alt="" /></div>
+        <div class="layer" id="fakeLayer"></div>
+        <svg class="dim" id="dim" preserveAspectRatio="none" aria-hidden="true"></svg>
+        <div class="layer" id="markLayer"></div>
+        <div class="layer" id="calloutLayer"></div>
+        <div class="cursor" id="cursor" aria-hidden="true">
+          <svg viewBox="0 0 24 32">
+            <path d="M2 2 L2 26 L8.5 20 L13 30 L17 28.2 L12.6 18.6 L21.5 18.6 Z" fill="#0f172a" stroke="#fff"
+              stroke-width="2" stroke-linejoin="round" />
+          </svg>
+        </div>
+        <div class="intro" id="intro">
+          <div class="intro-card">
+            <span class="tag" style="color:#2563eb;font-weight:700;font-size:.78em;letter-spacing:.08em;">BILLING
+              WALKTHROUGH</span>
+            <h1>Project Billing &amp; Workplan Demonstration</h1>
+            <p>View the converted Maple Grove Housing Project in Billing &amp; Invoice, activate its billing plan, and
+              manage milestones on the Billing Workplan &amp; Gantt schedule.</p>
+            <div class="flow">
+              <span>Converted Project (Maple Grove)</span>
+              <span>Activate Billing Plan</span>
+              <span>Billing Workplan &amp; Gantt</span>
+              <span>Billing &amp; Invoices</span>
+              <span>Fill Invoice Details</span>
+              <span>Preview &amp; Send for Approval</span>
+            </div>
+            <button class="btn btn-primary" id="startBtn" type="button">Start Billing demo →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <div class="hint">Use <kbd>→</kbd> / <kbd>Space</kbd> for next, <kbd>←</kbd> for back, <kbd>R</kbd> to restart</div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const DIR = "Billing images/";
+
+      const SCREENS = {
+        billingMain: {
+          src: DIR + "Billing Main.png",
+          w: 1909,
+          h: 996,
+          crop: 48,
+          url: "demo.avyro.in/dashboard/billing-&-invoice/projects"
+        },
+        billingWorkplan: {
+          src: DIR + "Billing Workplan.png",
+          w: 1914,
+          h: 997,
+          crop: 48,
+          url: "demo.avyro.in/dashboard/billing-&-invoice/projects/3734?tab=workplan"
+        },
+        billingTab: {
+          src: DIR + "Bliing .png",
+          w: 1917,
+          h: 994,
+          crop: 48,
+          url: "demo.avyro.in/dashboard/billing-&-invoice/projects/3734?tab=billing"
+        },
+        billingForm: {
+          src: DIR + "Billing form.png",
+          w: 1918,
+          h: 993,
+          crop: 48,
+          url: "demo.avyro.in/dashboard/billing-&-invoice/projects/3734?tab=billing&action=generate-invoice"
+        },
+        billingForm2: {
+          src: DIR + "Form 2.png",
+          w: 1917,
+          h: 997,
+          crop: 48,
+          url: "demo.avyro.in/dashboard/billing-&-invoice/projects/3734?tab=billing&action=generate-invoice"
+        },
+        billingPreview: {
+          src: DIR + "Preview.png",
+          w: 1918,
+          h: 1002,
+          crop: 48,
+          url: "demo.avyro.in/dashboard/billing-&-invoice/projects/3734?tab=billing&action=preview-invoice"
+        }
+      };
+
+      /* ------------------------------------------------------------------
+       * Scenes
+       * ------------------------------------------------------------------ */
+      const SCENES = [
+        /* 1. Billing Main – Converted Maple Grove Housing Project (Billing Main.png) */
+        {
+          screen: "billingMain",
+          tag: "Billing · Projects",
+          title: "Converted Project: Maple Grove Housing Project",
+          body: "Maple Grove Housing Project (PR125AVYRO.999) appears under Billing → Projects. Click Activate Billing Plan to configure its billing schedule.",
+          points: [
+            "1. Billing Tabs & Status Filters (All, Upcoming, Ongoing, On-hold)",
+            "2. Maple Grove Housing Project (Retainer · MaterialWorks NYC · On-Time)",
+            "3. Click Activate Billing Plan to open the Billing Workplan"
+          ],
+          holes: [
+            { x: 84, y: 97, w: 1810, h: 80, n: 1, label: "Billing Navigation & Status Filters", markerX: 96, markerY: 86 },
+            { x: 699, y: 197, w: 590, h: 339, n: 2, label: "Converted Project: Maple Grove Housing Project", markerX: 705, markerY: 184 },
+            { x: 1164, y: 505, w: 116, h: 25, n: 3, label: "Activate Billing Plan", markerX: 965, markerY: 518 }
+          ],
+          pulses: [
+            { x: 1164, y: 505, w: 116, h: 25 }
+          ],
+          hotspots: [
+            { x: 699, y: 197, w: 590, h: 339, title: "Open Maple Grove Housing Project Billing Workplan" },
+            { x: 1164, y: 505, w: 116, h: 25, title: "Click Activate Billing Plan" }
+          ],
+          callout: { x: 1320, y: 220, w: 325 },
+          cursor: { x: 990, y: 360 },
+          nextLabel: "Activate Billing Plan",
+          next: async () => { await moveTo(1222, 518); await click(); }
+        },
+
+        /* 2. Billing Workplan – Gantt Timeline & Billing Schedule (Billing Workplan.png) */
+        {
+          screen: "billingWorkplan",
+          tag: "Billing Workplan",
+          title: "Billing Timeline & Schedule",
+          body: "Track project billing milestones across the Gantt timeline and schedule, then click the Billing tab to view generated invoices.",
+          points: [
+            "1. Workplan Tab: Billing schedule & CRM workplan views",
+            "2. Billing Timeline — Gantt View (BM-001 CD to BM-004 Programming)",
+            "3. Billing Schedule & Event Timeline → Click Billing tab"
+          ],
+          holes: [
+            { x: 84, y: 100, w: 1824, h: 120, n: 1, label: "Workplan & Billing Tabs", markerX: 96, markerY: 88 },
+            { x: 84, y: 241, w: 1824, h: 306, n: 2, label: "Billing Timeline — Gantt View (BM-001 to BM-004)", markerX: 96, markerY: 230 },
+            { x: 84, y: 566, w: 1824, h: 351, n: 3, label: "Billing Schedule & Event Timeline", markerX: 96, markerY: 556 }
+          ],
+          pulses: [
+            { x: 338, y: 146, w: 54, h: 28 }
+          ],
+          hotspots: [
+            { x: 338, y: 146, w: 54, h: 28, title: "Click Billing tab" }
+          ],
+          callout: { x: 1320, y: 108, w: 330 },
+          cursor: { x: 640, y: 380 },
+          nextLabel: "Open Billing Tab",
+          next: async () => { await moveTo(365, 160); await click(); }
+        },
+
+        /* 3. Billing & Payments – Invoices & Consultants (Bliing .png) */
+        {
+          screen: "billingTab",
+          tag: "Billing & Invoices",
+          title: "Project Invoices, KPIs & Consultants",
+          body: "Monitor total invoiced, collected, overdue, and pending balances, then click + Generate Invoice to create a new milestone invoice.",
+          points: [
+            "1. Billing KPIs: $278,733.32 Invoiced · $139,366.66 Overdue & Pending",
+            "2. Invoices (2): IN4AVYRO (Overdue) & IN5AVYRO (Draft)",
+            "3. Click + Generate Invoice at the top-right"
+          ],
+          holes: [
+            { x: 84, y: 201, w: 1824, h: 77, n: 1, label: "Billing KPIs (Total Invoiced, Collected, Overdue & Pending)", markerX: 96, markerY: 189 },
+            { x: 84, y: 296, w: 1824, h: 143, n: 2, label: "Invoices (IN4AVYRO & IN5AVYRO) + Generate Invoice", markerX: 96, markerY: 288 },
+            { x: 84, y: 460, w: 1824, h: 90, n: 3, label: "Consultants Billing", markerX: 96, markerY: 452 }
+          ],
+          pulses: [
+            { x: 1788, y: 296, w: 120, h: 30 }
+          ],
+          hotspots: [
+            { x: 1788, y: 296, w: 120, h: 30, title: "Click + Generate Invoice" }
+          ],
+          callout: { x: 1320, y: 580, w: 335 },
+          cursor: { x: 1720, y: 365 },
+          nextLabel: "+ Generate Invoice",
+          next: async () => { await moveTo(1848, 311); await click(); }
+        },
+
+        /* 4. Generate Invoice Modal – Fill Details (Billing form.png) */
+        {
+          screen: "billingForm",
+          tag: "Generate Invoice · Part 1",
+          title: "Fill Invoice Details & Services Billing",
+          body: "Select the billing milestone, verify PM & PIC assignments, and enter billable service hours and rates before scrolling down to Bank & Timesheet details.",
+          points: [
+            "1. Milestone (BM-001 — CD), Issue/Due Dates & Project Team (Tony Stark & Matthew Mason)",
+            "2. Services Billing: 2,791.8 Hrs @ $48/hr = $134,006.40 Subtotal",
+            "3. Consultants, Reimbursables & Invoice Summary"
+          ],
+          holes: [
+            { x: 400, y: 178, w: 1118, h: 274, n: 1, label: "Invoice Details, Milestone & Project Team", markerX: 412, markerY: 162 },
+            { x: 400, y: 464, w: 1118, h: 176, n: 2, label: "Services Billing ($134,006.40 Subtotal)", markerX: 412, markerY: 454 },
+            { x: 400, y: 652, w: 1118, h: 228, n: 3, label: "Consultants, Reimbursables & Summary", markerX: 412, markerY: 644 }
+          ],
+          callout: { x: 1552, y: 260, w: 335 },
+          cursor: { x: 1100, y: 565 },
+          nextLabel: "Next: Bank & Timesheet"
+        },
+
+        /* 5. Generate Invoice Modal – Bank Details, Timesheet Annexure & Preview (Form 2.png) */
+        {
+          screen: "billingForm2",
+          tag: "Generate Invoice · Part 2",
+          title: "Bank Details, Timesheet Annexure & Preview",
+          body: "Complete Bank Details and attach the Timesheet Annexure, then click Preview Invoice → to proceed to step 2.",
+          points: [
+            "1. Bank Details (US Basis): Account Name, Bank Name, Account & Routing #",
+            "2. Attach Timesheet Annexure: 80.00 Total Hours @ $50/hr ($4,000.00)",
+            "3. Click Preview Invoice → once all details are complete"
+          ],
+          holes: [
+            { x: 400, y: 255, w: 1118, h: 232, n: 1, label: "Bank Details (Account, Bank & Routing #)", markerX: 412, markerY: 243 },
+            { x: 400, y: 499, w: 1118, h: 348, n: 2, label: "Attach Timesheet Annexure & Billable Hours Layout", markerX: 412, markerY: 489 },
+            { x: 1295, y: 891, w: 224, h: 34, n: 3, label: "Preview Invoice →", markerX: 1110, markerY: 908 }
+          ],
+          pulses: [
+            { x: 1389, y: 893, w: 128, h: 30 }
+          ],
+          hotspots: [
+            { x: 1389, y: 893, w: 128, h: 30, title: "Click Preview Invoice →" }
+          ],
+          callout: { x: 1552, y: 260, w: 335 },
+          cursor: { x: 1050, y: 680 },
+          nextLabel: "Preview Invoice",
+          next: async () => { await moveTo(1453, 908); await click(); }
+        },
+
+        /* 6. Generate Invoice Modal – Step 2 Preview (Preview.png) */
+        {
+          screen: "billingPreview",
+          tag: "Invoice Preview",
+          title: "Review 2-Page PDF Preview & Send for Approval",
+          body: "Inspect the formatted Invoice PDF (with Timesheet Annexure on page 2) and click Send for Approval → to route the invoice.",
+          points: [
+            "1. Step 2 · Preview (Draft #256 · IN7AVYRO)",
+            "2. 2-Page PDF Preview: $4,000.00 + 4% Tax ($160.00) = $4,160.00 Total",
+            "3. Click Send for Approval → (or Save as Draft)"
+          ],
+          holes: [
+            { x: 392, y: 115, w: 1135, h: 55, n: 1, label: "Step 2 · Preview (Draft #256 · IN7AVYRO)", markerX: 404, markerY: 102 },
+            { x: 590, y: 215, w: 727, h: 657, n: 2, label: "2-Page PDF Preview ($4,160.00 Total + Timesheet Annexure)", markerX: 600, markerY: 200 },
+            { x: 1178, y: 893, w: 342, h: 35, n: 3, label: "Send for Approval →", markerX: 985, markerY: 910 }
+          ],
+          pulses: [
+            { x: 1387, y: 896, w: 130, h: 30 }
+          ],
+          callout: { x: 1552, y: 260, w: 335 },
+          cursor: { x: 1150, y: 620 },
+          nextLabel: "Restart demo",
+          restart: true
+        }
+      ];
+
+      /* ------------------------------------------------------------------
+       * DOM refs
+       * ------------------------------------------------------------------ */
+      const $ = (id) => document.getElementById(id);
+      const viewport = $("viewport"), frame = $("frame"), stage = $("stage"), shot = $("shot");
+      const dim = $("dim"), fakeLayer = $("fakeLayer"), markLayer = $("markLayer"), calloutLayer = $("calloutLayer");
+      const cursor = $("cursor"), intro = $("intro"), progress = $("progress"), stepLabel = $("stepLabel"), urlEl = $("url");
+      const fullScreenBtn = $("fullScreenBtn");
+      const SVG_NS = "http://www.w3.org/2000/svg";
+      const CHROME_H = 34;
+
+      let index = 0;
+      let busy = false;
+      let started = false;
+      let currentScreen = null;
+
+      /* ------------------------------------------------------------------
+       * Geometry helpers (image px → % of stage)
+       * ------------------------------------------------------------------ */
+      const effH = (s) => s.h - (s.crop || 0) - (s.cropBottom || 0);
+      const px = (s, x) => (x / s.w) * 100 + "%";
+      const py = (s, y) => ((y - s.crop) / effH(s)) * 100 + "%";
+      const pw = (s, w) => (w / s.w) * 100 + "%";
+      const ph = (s, h) => (h / effH(s)) * 100 + "%";
+
+      function place(el, s, r) {
+        el.style.left = px(s, r.x);
+        el.style.top = py(s, r.y);
+        if (r.w !== undefined) el.style.width = pw(s, r.w);
+        if (r.h !== undefined) el.style.height = ph(s, r.h);
+      }
+
+      function fit() {
+        const s = SCREENS[currentScreen || "billingMain"];
+        const aspect = s.w / effH(s);
+        const availW = viewport.clientWidth - 48;
+        const availH = viewport.clientHeight - 18 - CHROME_H;
+        const width = Math.max(320, Math.min(availW, availH * aspect));
+        frame.style.width = width + "px";
+        stage.style.width = width + "px";
+        stage.style.height = width / aspect + "px";
+      }
+
+      /* ------------------------------------------------------------------
+       * Timing helpers (Web Animations API)
+       * ------------------------------------------------------------------ */
+      async function moveTo(x, y, duration = 850) {
+        cursor.style.display = "block";
+        const s = SCREENS[currentScreen];
+        const toLeft = px(s, x), toTop = py(s, y);
+        const from = { left: cursor.style.left || "50%", top: cursor.style.top || "50%" };
+        const anim = cursor.animate(
+          [from, { left: toLeft, top: toTop }],
+          { duration, easing: "cubic-bezier(.45,.05,.25,1)", fill: "forwards" }
+        );
+        await anim.finished;
+        cursor.style.left = toLeft;
+        cursor.style.top = toTop;
+        anim.cancel();
+      }
+
+      function setCursor(x, y) {
+        const s = SCREENS[currentScreen];
+        cursor.style.left = px(s, x);
+        cursor.style.top = py(s, y);
+      }
+
+      async function click() {
+        const r = document.createElement("div");
+        r.className = "ripple";
+        r.style.left = cursor.style.left;
+        r.style.top = cursor.style.top;
+        stage.appendChild(r);
+        cursor.animate([{ transform: "scale(1)" }, { transform: "scale(.82)" }, { transform: "scale(1)" }], { duration: 260 });
+        await r.animate(
+          [{ opacity: 1, transform: "translate(-50%,-50%) scale(.2)" }, { opacity: 0, transform: "translate(-50%,-50%) scale(1.4)" }],
+          { duration: 500, easing: "ease-out" }
+        ).finished;
+        r.remove();
+      }
+
+      /* ------------------------------------------------------------------
+       * Rendering
+       * ------------------------------------------------------------------ */
+      function drawDim(scene, s) {
+        dim.setAttribute("viewBox", `0 0 ${s.w} ${effH(s)}`);
+        dim.replaceChildren();
+        if (scene.noDim) return;
+
+        const holes = scene.holes || [];
+        const maskId = "m" + Math.random().toString(36).slice(2);
+        const defs = document.createElementNS(SVG_NS, "defs");
+        const mask = document.createElementNS(SVG_NS, "mask");
+        mask.setAttribute("id", maskId);
+        const base = rect(0, 0, s.w, effH(s), 0);
+        base.setAttribute("fill", "white");
+        mask.appendChild(base);
+        holes.forEach((h) => {
+          const r = rect(h.x - 6, h.y - s.crop - 6, h.w + 12, h.h + 12, 12);
+          r.setAttribute("fill", "black");
+          mask.appendChild(r);
+        });
+        defs.appendChild(mask);
+        dim.appendChild(defs);
+
+        const shade = rect(0, 0, s.w, effH(s), 0);
+        shade.setAttribute("fill", "rgba(15, 23, 42, 0.22)");
+        shade.setAttribute("mask", `url(#${maskId})`);
+        dim.appendChild(shade);
+
+        holes.forEach((h) => {
+          const o = rect(h.x - 6, h.y - s.crop - 6, h.w + 12, h.h + 12, 12);
+          o.setAttribute("class", "outline");
+          dim.appendChild(o);
+        });
+        dim.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 350 });
+      }
+
+      function rect(x, y, w, h, r) {
+        const el = document.createElementNS(SVG_NS, "rect");
+        el.setAttribute("x", x); el.setAttribute("y", y);
+        el.setAttribute("width", w); el.setAttribute("height", h);
+        el.setAttribute("rx", r); el.setAttribute("ry", r);
+        return el;
+      }
+
+      function drawMarks(scene, s) {
+        markLayer.replaceChildren();
+        (scene.pulses || []).forEach((p) => {
+          const el = document.createElement("div");
+          el.className = "pulse";
+          place(el, s, p);
+          markLayer.appendChild(el);
+        });
+        (scene.hotspots || []).forEach((hs) => {
+          const el = document.createElement("div");
+          el.className = "hotspot";
+          if (hs.title) el.title = hs.title;
+          place(el, s, hs);
+          el.addEventListener("click", goNext);
+          markLayer.appendChild(el);
+        });
+        (scene.holes || []).filter((h) => h.n).forEach((h) => {
+          const m = document.createElement("div");
+          m.className = "marker";
+          const rawX = h.markerX !== undefined ? h.markerX : h.x - 4;
+          const rawY = h.markerY !== undefined ? h.markerY : h.y - 4;
+          const safeX = Math.min(s.w - 150, Math.max(16, rawX));
+          place(m, s, { x: safeX, y: rawY });
+          const b = document.createElement("b");
+          b.textContent = h.n;
+          m.appendChild(b);
+          if (h.label) {
+            const l = document.createElement("span");
+            l.textContent = h.label;
+            m.appendChild(l);
+          }
+          markLayer.appendChild(m);
+          const stageW = stage.clientWidth;
+          if (stageW > 0 && m.offsetLeft + m.offsetWidth > stageW - 10) {
+            const clampedLeft = Math.max(8, stageW - m.offsetWidth - 10);
+            m.style.left = (clampedLeft / stageW) * 100 + "%";
+          }
+        });
+        (scene.notesAbove || []).forEach((na) => {
+          const n = document.createElement("div");
+          n.className = "note-above";
+          place(n, s, { x: na.x, y: na.y });
+          n.textContent = na.text;
+          markLayer.appendChild(n);
+        });
+      }
+
+      function drawCallout(scene, s) {
+        calloutLayer.replaceChildren();
+        const c = document.createElement("section");
+        c.className = "callout";
+        c.setAttribute("role", "dialog");
+        c.setAttribute("aria-label", scene.title);
+        place(c, s, { x: scene.callout.x, y: scene.callout.y, w: scene.callout.w });
+
+        const tag = document.createElement("span");
+        tag.className = "tag";
+        tag.textContent = scene.tag;
+        const h = document.createElement("h3");
+        h.textContent = scene.title;
+        const p = document.createElement("p");
+        p.textContent = scene.body;
+        const ul = document.createElement("ul");
+        scene.points.forEach((t) => { const li = document.createElement("li"); li.textContent = t; ul.appendChild(li); });
+
+        const actions = document.createElement("div");
+        actions.className = "actions";
+        const count = document.createElement("span");
+        count.className = "count";
+        count.textContent = `${index + 1} / ${SCENES.length}`;
+        const btns = document.createElement("div");
+        btns.className = "btns";
+        const back = document.createElement("button");
+        back.type = "button";
+        back.className = "btn btn-ghost";
+        back.textContent = "← Back";
+        back.disabled = index === 0;
+        back.addEventListener("click", goBack);
+        const next = document.createElement("button");
+        next.type = "button";
+        next.className = "btn btn-primary";
+        next.id = "nextBtn";
+        next.textContent = (scene.nextLabel || "Next") + (scene.restart ? " ↺" : " →");
+        next.addEventListener("click", goNext);
+        btns.append(back, next);
+        actions.append(count, btns);
+
+        c.append(tag, h, p, ul, actions);
+        calloutLayer.appendChild(c);
+        const stageH = stage.clientHeight;
+        if (stageH > 0 && c.offsetTop + c.offsetHeight > stageH - 12) {
+          const clampedTop = Math.max(8, stageH - c.offsetHeight - 12);
+          c.style.top = (clampedTop / stageH) * 100 + "%";
+        }
+        next.focus({ preventScroll: true });
+      }
+
+      function drawProgress() {
+        progress.replaceChildren();
+        SCENES.forEach((sc, i) => {
+          const d = document.createElement("button");
+          d.type = "button";
+          d.className = "dot" + (i === index ? " active" : i < index ? " done" : "");
+          d.setAttribute("aria-label", `Go to step ${i + 1}: ${sc.title}`);
+          d.addEventListener("click", () => { if (!busy && started) render(i, { instant: true }); });
+          progress.appendChild(d);
+        });
+        stepLabel.textContent = `${index + 1}/${SCENES.length} · ${SCENES[index].tag}`;
+      }
+
+      async function swapScreen(key) {
+        if (currentScreen === key) return;
+        const s = SCREENS[key];
+        if (currentScreen) {
+          await stage.animate([{ opacity: 1 }, { opacity: 0.15 }], { duration: 180 }).finished;
+        }
+        currentScreen = key;
+        shot.style.display = "block";
+        shot.src = s.src;
+        shot.alt = key + " screen";
+        shot.style.top = (-s.crop / effH(s)) * 100 + "%";
+        shot.style.height = (s.h / effH(s)) * 100 + "%";
+        urlEl.textContent = s.url;
+        fit();
+        await stage.animate([{ opacity: 0.15 }, { opacity: 1 }], { duration: 240 }).finished;
+      }
+
+      async function render(i, opts = {}) {
+        index = i;
+        const scene = SCENES[i];
+        calloutLayer.replaceChildren();
+        markLayer.replaceChildren();
+        fakeLayer.replaceChildren();
+        dim.replaceChildren();
+        const prevScreen = currentScreen;
+        const keepLeft = cursor.style.left, keepTop = cursor.style.top;
+        await swapScreen(scene.screen);
+        if (prevScreen !== currentScreen) { cursor.style.left = keepLeft; cursor.style.top = keepTop; }
+
+        const s = SCREENS[scene.screen];
+        if (scene.fakes) scene.fakes(scene).forEach((el) => fakeLayer.appendChild(el));
+        drawDim(scene, s);
+        drawMarks(scene, s);
+        drawProgress();
+        if (scene.hideCursor) {
+          cursor.style.display = "none";
+        } else {
+          cursor.style.display = "block";
+          if (scene.cursor) {
+            if (opts.instant) setCursor(scene.cursor.x, scene.cursor.y);
+            else await moveTo(scene.cursor.x, scene.cursor.y, 650);
+          }
+        }
+        drawCallout(scene, s);
+      }
+
+      async function goNext() {
+        if (busy || !started) return;
+        busy = true;
+        const scene = SCENES[index];
+        const nb = $("nextBtn");
+        if (nb) nb.disabled = true;
+        try {
+          if (scene.restart) { await restart(); return; }
+          calloutLayer.replaceChildren();
+          if (scene.next) await scene.next();
+          await render(Math.min(index + 1, SCENES.length - 1));
+        } finally {
+          busy = false;
+        }
+      }
+
+      async function goBack() {
+        if (busy || !started || index === 0) return;
+        busy = true;
+        try { await render(index - 1, { instant: true }); } finally { busy = false; }
+      }
+
+      async function restart() {
+        await render(0, { instant: true });
+      }
+
+      async function start() {
+        if (started) return;
+        started = true;
+        await intro.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 280, fill: "forwards" }).finished;
+        intro.remove();
+        busy = true;
+        try { await render(0); } finally { busy = false; }
+      }
+
+      function toggleFullScreen() {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen?.();
+        } else {
+          document.exitFullscreen?.();
+        }
+      }
+
+      /* ------------------------------------------------------------------
+       * Boot
+       * ------------------------------------------------------------------ */
+      Object.values(SCREENS).forEach((s) => {
+        if (s.src) {
+          const im = new Image();
+          im.src = s.src;
+        }
+      });
+      currentScreen = null;
+      swapScreen("billingMain").then(() => { cursor.style.display = "none"; });
+      window.addEventListener("resize", fit);
+      $("startBtn").addEventListener("click", start);
+      fullScreenBtn.addEventListener("click", toggleFullScreen);
+      $("startBtn").focus();
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowRight" || e.key === " " || e.key === "Enter") {
+          e.preventDefault();
+          if (!started) start(); else goNext();
+        } else if (e.key === "ArrowLeft") {
+          e.preventDefault(); goBack();
+        } else if (e.key === "r" || e.key === "R") {
+          if (started && !busy) { busy = true; restart().finally(() => { busy = false; }); }
+        } else if (e.key === "f" || e.key === "F") {
+          toggleFullScreen();
+        }
+      });
+    })();
+  </script>
+</body>
+
+</html>
