@@ -601,10 +601,7 @@
     }
 
     .hint {
-      color: #94a3b8;
-      font-size: 12px;
-      text-align: center;
-      padding-bottom: 8px;
+      display: none;
     }
 
     kbd {
@@ -1116,7 +1113,7 @@
         const s = SCREENS[currentScreen || "projects"];
         const aspect = s.w / effH(s);
         const availW = viewport.clientWidth - 48;
-        const availH = viewport.clientHeight - 18 - CHROME_H;
+        const availH = viewport.clientHeight - 48 - CHROME_H;
         const width = Math.max(320, Math.min(availW, availH * aspect));
         frame.style.width = width + "px";
         stage.style.width = width + "px";
