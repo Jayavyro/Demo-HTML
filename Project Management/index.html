@@ -26,7 +26,10 @@
 
     body {
       font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
-      background: radial-gradient(1200px 600px at 20% -10%, #1e293b 0%, var(--bg) 60%);
+      background:
+        radial-gradient(900px 520px at 14% 8%, rgba(37, 99, 235, .18), transparent 64%),
+        radial-gradient(760px 460px at 88% 92%, rgba(16, 185, 129, .12), transparent 68%),
+        #050814;
       color: #e2e8f0;
       display: flex;
       flex-direction: column;
@@ -35,12 +38,7 @@
 
     /* ---------- Top bar ---------- */
     .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 24px;
-      gap: 16px;
-      flex: 0 0 auto;
+      display: none !important;
     }
 
     .brand {
@@ -105,7 +103,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 0 24px 18px;
+      padding: 24px 24px 24px;
       min-height: 0;
     }
 
@@ -118,8 +116,8 @@
 
     .chrome {
       height: 34px;
-      background: #f1f5f9;
-      border-bottom: 1px solid #e2e8f0;
+      background: #eef2f7;
+      border-bottom: 1px solid #dbe3ee;
       display: flex;
       align-items: center;
       gap: 8px;
@@ -148,7 +146,7 @@
     .url {
       margin-left: 14px;
       flex: 1;
-      max-width: 560px;
+      max-width: 700px;
       height: 22px;
       border-radius: 11px;
       background: #fff;
