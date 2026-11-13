@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -817,18 +817,18 @@
           holes: [
             { x: 400, y: 178, w: 1118, h: 274, n: 1, label: "Invoice Details & Team", markerX: 412, markerY: 162 },
             { x: 400, y: 464, w: 1118, h: 176, n: 2, label: "Services Billing ($134,006.40)", markerX: 412, markerY: 454 },
-            { x: 804, y: 254, w: 66, h: 32, n: 3, label: "Insight", markerX: 640, markerY: 270 }
+            { x: 804, y: 254, w: 76, h: 30, n: 3, label: "Insight", markerX: 640, markerY: 270 }
           ],
           pulses: [
-            { x: 804, y: 254, w: 66, h: 32 }
+            { x: 804, y: 254, w: 76, h: 30 }
           ],
           hotspots: [
-            { x: 804, y: 254, w: 66, h: 32, title: "Click Insight" }
+            { x: 804, y: 254, w: 76, h: 30, title: "Click Insight" }
           ],
           callout: { x: 1552, y: 260, w: 285 },
           cursor: { x: 1100, y: 565 },
           nextLabel: "Open Insight",
-          next: async () => { await moveTo(837, 270); await click(); }
+          next: async () => { await moveTo(842, 269); await click(); }
         },
 
         /* 4b. Existing Service Insights modal (Insight.png) */
@@ -847,15 +847,15 @@
             { x: 698, y: 326, w: 874, h: 312, n: 2, label: "Hours by Role & Employee", markerX: 710, markerY: 314 }
           ],
           pulses: [
-            { x: 1510, y: 98, w: 62, h: 26 }
+            { x: 1489, y: 91, w: 76, h: 36 }
           ],
           hotspots: [
-            { x: 1510, y: 98, w: 62, h: 26, title: "Click Close" }
+            { x: 1489, y: 91, w: 76, h: 36, title: "Click Close" }
           ],
           callout: { x: 1608, y: 260, w: 285 },
           cursor: { x: 1130, y: 480 },
           nextLabel: "Close Insight",
-          next: async () => { await moveTo(1541, 111); await click(); }
+          next: async () => { await moveTo(1527, 109); await click(); }
         },
 
         /* 5. Generate Invoice Modal – Bank Details, Timesheet Annexure & Preview (Form 2.png) */
@@ -872,18 +872,18 @@
           holes: [
             { x: 400, y: 255, w: 1118, h: 232, n: 1, label: "Bank Details", markerX: 412, markerY: 243 },
             { x: 400, y: 499, w: 1118, h: 348, n: 2, label: "Timesheet Annexure", markerX: 412, markerY: 489 },
-            { x: 1295, y: 891, w: 224, h: 34, n: 3, label: "Preview Invoice →", markerX: 1110, markerY: 908 }
+            { x: 1398, y: 892, w: 121, h: 33, n: 3, label: "Preview Invoice →", markerX: 1215, markerY: 908 }
           ],
           pulses: [
-            { x: 1389, y: 893, w: 128, h: 30 }
+            { x: 1398, y: 892, w: 121, h: 33 }
           ],
           hotspots: [
-            { x: 1389, y: 893, w: 128, h: 30, title: "Click Preview Invoice →" }
+            { x: 1398, y: 892, w: 121, h: 33, title: "Click Preview Invoice →" }
           ],
           callout: { x: 1552, y: 260, w: 285 },
           cursor: { x: 1050, y: 680 },
           nextLabel: "Preview Invoice",
-          next: async () => { await moveTo(1453, 908); await click(); }
+          next: async () => { await moveTo(1458, 908); await click(); }
         },
 
         /* 6. Generate Invoice – Step 2 Preview (Preview.png) */
@@ -900,13 +900,16 @@
           holes: [
             { x: 392, y: 115, w: 1135, h: 55, n: 1, label: "Step 2 · Preview", markerX: 404, markerY: 102 },
             { x: 590, y: 215, w: 727, h: 657, n: 2, label: "2-Page PDF Preview ($4,160.00)", markerX: 600, markerY: 200 },
-            { x: 1178, y: 893, w: 342, h: 35, n: 3, label: "Send for Approval →", markerX: 985, markerY: 910 }
+            { x: 1299, y: 895, w: 220, h: 33, n: 3, label: "Send for Approval →", markerX: 1120, markerY: 910 }
           ],
           pulses: [
-            { x: 1387, y: 896, w: 130, h: 30 }
+            { x: 1299, y: 895, w: 220, h: 33 }
+          ],
+          hotspots: [
+            { x: 1299, y: 895, w: 220, h: 33, title: "Click Send for Approval →" }
           ],
           callout: { x: 1552, y: 260, w: 285 },
-          cursor: { x: 1150, y: 620 },
+          cursor: { x: 1408, y: 911 },
           nextLabel: "Restart demo",
           restart: true
         }
