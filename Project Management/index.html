@@ -35,7 +35,12 @@
 
     /* ---------- Top bar ---------- */
     .topbar {
-      display: none !important;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 24px;
+      gap: 16px;
+      flex: 0 0 auto;
     }
 
     .brand {
@@ -100,7 +105,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 24px 24px 24px;
+      padding: 0 24px 18px;
       min-height: 0;
     }
 
@@ -430,6 +435,12 @@
       list-style: none;
     }
 
+    .callout ul.cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .15em 1.2em;
+    }
+
     .callout li {
       position: relative;
       padding-left: 1.15em;
@@ -686,7 +697,7 @@
         unreportedSelect: { src: DIR + "Unreported select.png", w: 1917, h: 920, crop: 0, url: "demo.avyro.in/dashboard/timesheet/my-timesheet" },
         mapUnreported: { src: DIR + "Map unreported.png", w: 1917, h: 917, crop: 0, url: "demo.avyro.in/dashboard/timesheet/my-timesheet" },
         mappedToProject: { src: DIR + "Mapped to PRoject .png", w: 1917, h: 917, crop: 0, url: "demo.avyro.in/dashboard/timesheet/my-timesheet" },
-        mapToTask: { src: DIR + "Map to task.png", w: 1913, h: 925, crop: 0, url: "demo.avyro.in/dashboard/timesheet/my-timesheet" },
+        mapToTask: { src: DIR + "Map to task.png", w: 1917, h: 921, crop: 0, url: "demo.avyro.in/dashboard/timesheet/my-timesheet" },
         tsDetails: { src: DIR + "Details of Timesheet.png", w: 1917, h: 920, crop: 0, url: "demo.avyro.in/dashboard/timesheet/my-timesheet" },
         tsApproval: { src: DIR + "Timesheet Approval.png", w: 1815, h: 867, crop: 0, url: "demo.avyro.in/dashboard/timesheet/my-timesheet/weekly" },
         tsApprovalManager: { src: DIR + "Timesheet Approval_ Corrected Wednesday Totals.png", w: 1815, h: 867, crop: 0, url: "demo.avyro.in/dashboard/timesheet/timesheet-approval" },
@@ -715,23 +726,7 @@
        * Scenes (Ultra-brief descriptions positioned in empty/unused spaces)
        * ------------------------------------------------------------------ */
       const SCENES = [
-        /* 1. All Projects (placed in empty top-middle header space) */
-        {
-          screen: "projects",
-          noDim: true,
-          tag: "My Projects",
-          title: "All Projects Dashboard",
-          body: "Central view of all projects, hours, fees, and owners.",
-          points: [
-            "Filter by project status",
-            "Track hours, fees & progress"
-          ],
-          callout: { x: 960, y: 52, w: 360 },
-          cursor: { x: 960, y: 460 },
-          nextLabel: "Next"
-        },
-
-        /* 2. Select project (placed in empty top-middle space) */
+        /* 1. Select project (starts directly here) */
         {
           screen: "projects",
           tag: "Select Project",
@@ -823,142 +818,70 @@
           next: async () => { await moveTo(1830, 156); await click(); }
         },
 
-        /* 6. Smart Allocation & Skill Mapping (Unified 1 to 6) */
+        /* 6. Smart Allocation – Points 1 to 6 grouped in one screen */
         {
           screen: "allocation",
           tag: "Smart Allocation",
-          title: "Smart Allocation & Skill Matching",
-          body: "Filter by designation to rank candidates by matched skills, matching percentage, and availability.",
-          points: [
-            "1. Stage & Timeline · 2. Designations",
-            "3. Matched Skills · 4. Matching % (Tony Stark: 90%)",
-            "5. Availability · 6. Live Resource Summary",
-            "Click Tony Stark's card to view Skill Profile"
-          ],
+          title: "Find the Best-Fit Member",
+          body: "Filter by stage, timeline & designation (1), inspect matched skills & availability (2), compare Match % (3), and track totals in Resource Summary (4).",
+          points: [],
           holes: [
-            { x: 58, y: 22, w: 700, h: 38, n: 1, label: "Stage & timeline" },
-            { x: 62, y: 99, w: 375, h: 38, n: 2, label: "Designations" },
-            { x: 68, y: 325, w: 405, h: 26, n: 3, label: "Skills & Mapping" },
-            { x: 554, y: 325, w: 385, h: 26 },
-            { x: 1041, y: 325, w: 395, h: 26 },
-            { x: 914, y: 190, w: 96, h: 68, n: 4, label: "Matching % (90%)" },
-            { x: 68, y: 372, w: 455, h: 44, n: 5, label: "Availability & delivery" },
-            { x: 1536, y: 190, w: 327, h: 380, n: 6, label: "Resource Summary" }
-          ],
-          pulses: [
-            { x: 540, y: 188, w: 220, h: 65 }
+            { x: 56, y: 20, w: 710, h: 120, n: 1, label: "Stage, Timeline & Designations" },
+            { x: 64, y: 318, w: 462, h: 102, n: 2, label: "Skills & Availability" },
+            { x: 914, y: 190, w: 96, h: 68, n: 3, label: "Match %" },
+            { x: 1536, y: 190, w: 327, h: 380, n: 4, label: "Resource Summary" }
           ],
           hotspots: [
             { x: 540, y: 188, w: 220, h: 65, title: "Click Tony Stark's photo to view Skill Profile" }
           ],
-          callout: { x: 1040, y: 14, w: 385 },
-          cursor: { x: 960, y: 230 },
+          pulses: [{ x: 544, y: 188, w: 220, h: 68 }],
+          callout: { x: 1515, y: 590, w: 355 },
+          cursor: { x: 1180, y: 450 },
           nextLabel: "View Member Profile",
-          next: async () => { await moveTo(571, 218); await click(); }
+          next: async () => { await moveTo(580, 224); await click(); }
         },
 
-        /* 7. Member Skill Profile */
+        /* 11. Member Skill Profile (placed in empty top-right space of modal; skips Project History screen) */
         {
           screen: "profile",
           tag: "Skill Profile",
-          title: "Project-Approved Skills",
-          body: "Skills & ratings are earned from project approvals and feedback. Click Project History to view experience.",
-          points: [
-            "Software 4.3 · Technical 4.3 · Soft 4.0",
-            "Click Project History tab to view experience"
-          ],
+          title: "Project-Approved Skills & History",
+          body: "Review member KPIs and project-verified skill ratings (1–3), or use the tabs to view Project History and Sectors & Clients.",
+          points: [],
           holes: [
             { x: 198, y: 108, w: 422, h: 745, n: 1, label: "Member KPIs" },
             { x: 654, y: 185, w: 1040, h: 120, n: 2, label: "Approved Skill Scores" },
             { x: 654, y: 318, w: 1040, h: 540, n: 3, label: "Project-Verified Skills" }
           ],
           notesAbove: [
-            { x: 865, y: 124, text: "Shows all industry sectors & clients the member has worked with" }
+            { x: 940, y: 124, text: "Switch tabs for past projects, sectors & clients" }
           ],
-          pulses: [{ x: 805, y: 128, w: 125, h: 32 }],
-          hotspots: [{ x: 805, y: 128, w: 125, h: 32, title: "Click Project History" }],
-          callout: { x: 1180, y: 55, w: 380 },
-          cursor: { x: 865, y: 144 },
-          nextLabel: "Project History",
-          next: async () => { await moveTo(865, 144); await click(); }
-        },
-
-        /* 8. Project History */
-        {
-          screen: "history",
-          hideCursor: true,
-          tag: "Project History",
-          title: "Projects, Sectors & Clients",
-          body: "Past & ongoing project log (Current Company & Other Projects), plus industry sectors and clients.",
-          points: [
-            "37 projects with role, tenure & hours"
-          ],
-          holes: [
-            { x: 678, y: 158, w: 964, h: 720, n: 1, label: "Projects Worked On (All 37)" },
-            { x: 274, y: 513, w: 370, h: 171, n: 2, label: "Sectors & Clients" }
-          ],
-          notesAbove: [
-            { x: 459, y: 508, text: "Shows all industry sectors & clients the member has worked with" }
-          ],
-          callout: { x: 1495, y: 18, w: 380 },
+          callout: { x: 1160, y: 24, w: 420 },
+          cursor: { x: 1120, y: 425 },
           nextLabel: "Allocate Hours"
         },
 
-        /* 9. Allocate Hours 1: Hours, Budget & Team Tracker */
+        /* 8. Allocate Hours (combined 1–3 in one screen) */
         {
           screen: "allocateHours",
-          tag: "Allocate Hours · 1",
-          title: "1. Hours, Budget & Team Tracker",
-          body: "Live progress bars track allocated hours, stage budget, fees, and team count.",
-          points: [
-            "135.6h used (64.4h left) · $5k budget left"
-          ],
+          tag: "Allocate Hours",
+          title: "Allocate Hours & Confirm Team",
+          body: "Track hours & budget (1), assign member hours & job roles (2), then click Confirm & Allocate (3) to finalize.",
+          points: [],
           holes: [
-            { x: 56, y: 80, w: 1810, h: 82, n: 1, label: "Hours, Budget & Team Tracker" }
-          ],
-          callout: { x: 590, y: 655, w: 380 },
-          cursor: { x: 420, y: 125 },
-          nextLabel: "Next"
-        },
-
-        /* 10. Allocate Hours 2: Allocated Hours & Job Roles */
-        {
-          screen: "allocateHours",
-          tag: "Allocate Hours · 2",
-          title: "2. Assign Hours & Job Roles",
-          body: "Enter allocated hours and select the job role for each selected member.",
-          points: [
-            "Tony (62.4h) & Robert (35.2h) · Job Captain"
-          ],
-          holes: [
-            { x: 58, y: 235, w: 1435, h: 382, n: 2, label: "Allocated Hours & Job Roles" }
-          ],
-          callout: { x: 590, y: 655, w: 380 },
-          cursor: { x: 960, y: 540 },
-          nextLabel: "Next"
-        },
-
-        /* 11. Allocate Hours 3: Confirm & Allocate */
-        {
-          screen: "allocateHours",
-          tag: "Allocate Hours · 3",
-          title: "3. Confirm & Allocate Team",
-          body: "Review totals in the summary and click Confirm & Allocate to finalize.",
-          points: [
-            "Click Confirm & Allocate (3 members)"
-          ],
-          holes: [
+            { x: 56, y: 80, w: 1810, h: 82, n: 1, label: "Hours, Budget & Team Tracker" },
+            { x: 58, y: 235, w: 1435, h: 382, n: 2, label: "Allocated Hours & Job Roles" },
             { x: 1606, y: 856, w: 250, h: 52, n: 3, label: "Confirm & Allocate" }
           ],
           pulses: [{ x: 1610, y: 860, w: 242, h: 44 }],
           hotspots: [{ x: 1610, y: 860, w: 242, h: 44, title: "Click Confirm & Allocate" }],
-          callout: { x: 590, y: 655, w: 380 },
+          callout: { x: 590, y: 655, w: 395 },
           cursor: { x: 1450, y: 760 },
           nextLabel: "Confirm & Allocate",
           next: async () => { await moveTo(1731, 882); await click(); }
         },
 
-        /* 12. Ongoing Gantt Chart (placed in empty top-middle header space) */
+        /* 14. Ongoing Gantt Chart (placed in empty top-middle header space) */
         {
           screen: "ongoingGantt",
           tag: "Manage Project",
@@ -979,7 +902,7 @@
           next: async () => { await moveTo(1703, 100); await click(); }
         },
 
-        /* 13. Import Workplan Modal (placed in empty side space outside modal) */
+        /* 15. Import Workplan Modal (placed in empty side space outside modal) */
         {
           screen: "importModal",
           tag: "Import Workplan",
@@ -999,74 +922,19 @@
           next: async () => { await moveTo(958, 474); await click(); }
         },
 
-        /* 18. Import from Excel Modal (placed in empty side space outside modal) */
-        {
-          screen: "excelUpload",
-          tag: "Excel Upload",
-          title: "Upload Excel Workplan",
-          body: "Select the stage and upload your Milestones + Tasks Excel sheet.",
-          points: [
-            "Click Upload to populate the Gantt"
-          ],
-          holes: [
-            { x: 686, y: 190, w: 546, h: 540, n: 1, label: "Import from Excel" }
-          ],
-          pulses: [{ x: 1084, y: 668, w: 116, h: 44 }],
-          hotspots: [{ x: 1084, y: 668, w: 116, h: 44, title: "Click Upload" }],
-          callout: { x: 1300, y: 520, w: 370 },
-          cursor: { x: 958, y: 348 },
-          nextLabel: "Upload",
-          next: async () => { await moveTo(1142, 690); await click(); }
-        },
-
-        /* 19. Filled Gantt Chart – Plain View (no dimming/outlines) */
+        /* 11. Filled Gantt Chart – Combined View */
         {
           screen: "filledGantt",
-          noDim: true,
           tag: "Workplan Populated",
           title: "Excel Workplan Imported",
-          body: "The Gantt chart is now populated with the imported stages, milestone, and 5 tasks.",
-          points: [
-            "Stage A (Schematic Design) & Stage B (Design Development)",
-            "1 Milestone & 5 tasks (48h assigned) · Est. 400h ($18,699)"
-          ],
-          callout: { x: 1120, y: 430, w: 375 },
-          cursor: { x: 650, y: 540 },
-          nextLabel: "Next"
-        },
-
-        /* 20. Filled Gantt Chart – Outline 1: Imported Milestone & Tasks */
-        {
-          screen: "filledGantt",
-          tag: "Workplan · 1",
-          title: "1. Imported & Allocated Tasks",
-          body: "Tasks and milestones are imported from Excel and allocated directly to team members with assigned hours.",
-          points: [
-            "5 tasks (48h total) imported under 30% Schematic Design",
-            "Each task is allocated to assigned team members (Tony Stark & Rachel Zane)"
-          ],
+          body: "Imported 1 milestone & 5 tasks (48h) allocated to Tony Stark & Rachel Zane (1), plotted automatically on the Oct 31–Dec 31 Gantt timeline (2).",
+          points: [],
           holes: [
-            { x: 100, y: 436, w: 328, h: 218, n: 1, label: "Imported & Allocated Tasks (48h)" }
-          ],
-          callout: { x: 1120, y: 430, w: 385 },
-          cursor: { x: 240, y: 540 },
-          nextLabel: "Next"
-        },
-
-        /* 21. Filled Gantt Chart – Outline 2: Scheduled Task Bars & Milestone */
-        {
-          screen: "filledGantt",
-          tag: "Workplan · 2",
-          title: "2. Scheduled Gantt Timeline",
-          body: "Task bars (Oct 31 – Dec 31), milestone diamond (Nov 10), and Stage summaries are plotted automatically.",
-          points: [
-            "Oct 31 – Dec 31 task schedule & Stage Summary"
-          ],
-          holes: [
+            { x: 100, y: 436, w: 328, h: 218, n: 1, label: "Imported & Allocated Tasks (48h)" },
             { x: 438, y: 436, w: 565, h: 218, n: 2, label: "Scheduled Task Bars & Milestone" }
           ],
-          callout: { x: 1120, y: 430, w: 375 },
-          cursor: { x: 680, y: 540 },
+          callout: { x: 1120, y: 430, w: 385 },
+          cursor: { x: 650, y: 540 },
           nextLabel: "Employee View"
         },
 
@@ -1087,217 +955,85 @@
           next: async () => { await moveTo(28, 352); await click(); }
         },
 
-        /* 23. Timesheet – Outline 1: Reported Entries & 2: Unreported Entries */
+        /* 13. Timesheet – Combined Reported, Unreported & Map Task -> directly to Map to Task */
         {
           screen: "timesheet",
           tag: "Timesheet",
-          title: "Reported & Unreported Entries",
-          body: "Auto-detected project activities appear under Reported Entries, while unallocated system activities appear on the right.",
-          points: [
-            "1. Reported Entries: Edge (1h) & Autodesk Revit (2h 4m)",
-            "2. Unreported Entries: 4h 36m unallocated (AutoCAD, Edge, Bluebeam)"
-          ],
+          title: "Reported, Unreported & Map Task",
+          body: "Review auto-detected Reported Entries (1) and unallocated Unreported Entries (2), then click Map Task (3) to assign to a project stage and task.",
+          points: [],
           holes: [
             { x: 98, y: 321, w: 1522, h: 402, n: 1, label: "Reported Entries" },
-            { x: 1638, y: 138, w: 262, h: 765, n: 2, label: "Unreported Entries" }
-          ],
-          callout: { x: 680, y: 742, w: 385 },
-          cursor: { x: 780, y: 520 },
-          nextLabel: "Next: Map Task"
-        },
-
-        /* 24. Timesheet – Outline 3: Map Task (cursor moves to Map Task) */
-        {
-          screen: "timesheet",
-          tag: "Timesheet · Map Task",
-          title: "3. Map Task to Project",
-          body: "Click Map Task on a reported entry to assign it to a project stage and task.",
-          points: [
-            "Click Map Task on the 2h 4m Revit entry"
-          ],
-          holes: [
+            { x: 1638, y: 138, w: 262, h: 765, n: 2, label: "Unreported Entries" },
             { x: 1548, y: 586, w: 61, h: 31, n: 3, label: "Map Task" }
           ],
           pulses: [{ x: 1548, y: 586, w: 61, h: 31 }],
           hotspots: [{ x: 1546, y: 584, w: 65, h: 35, title: "Click Map Task" }],
-          callout: { x: 680, y: 742, w: 375 },
+          callout: { x: 680, y: 742, w: 410 },
           cursor: { x: 1450, y: 602 },
           nextLabel: "Map Task",
           next: async () => { await moveTo(1579, 602); await click(); }
         },
 
-        /* 25. Timesheet Map Details (Timesheet Map Details.png) -> + Add another task & Save tasks */
-        {
-          screen: "tsMapDetails",
-          tag: "Map Task to Project",
-          title: "Map Task & Split Activity",
-          body: "Select Stage, Milestone, and Task (2h 4m → Architectural Site Plan), or click + Add another task to split the same activity across multiple tasks.",
-          points: [
-            "1. Stage A · Architectural Site Plan (02:04)",
-            "2. + Add another task: map 1 activity to multiple tasks"
-          ],
-          holes: [
-            { x: 700, y: 318, w: 516, h: 325, n: 1, label: "Stage, Milestone, Task & Hours (02:04)" },
-            { x: 700, y: 651, w: 516, h: 40, n: 2, label: "Map Same Activity to Multiple Tasks" }
-          ],
-          pulses: [{ x: 1132, y: 722, w: 88, h: 38 }],
-          hotspots: [{ x: 1132, y: 722, w: 88, h: 38, title: "Click Save tasks" }],
-          callout: { x: 1260, y: 490, w: 385 },
-          cursor: { x: 958, y: 670 },
-          nextLabel: "Save Tasks",
-          next: async () => { await moveTo(1176, 742); await click(); }
-        },
-
-        /* 29. Reported & Unreported Entries Mapped to Task (Map to task.png) */
+        /* 16. Reported & Unreported Entries Mapped to Task (Map to task.png) */
         {
           screen: "mapToTask",
           tag: "Mapped to Task",
-          title: "Reported & Unreported Entries Mapped",
-          body: "Both reported and unreported project entries are similarly mapped to Architectural Site Plan.",
-          points: [
-            "1. Reported mapped: Microsoft Edge (1h 56m) & Revit (2h 4m)",
-            "2. Unreported mapped: AutoCAD (2h 30m) & Bluebeam (1h)"
-          ],
+          title: "Entries Mapped to Task",
+          body: "Reported (1) and unreported (2) entries are mapped to Architectural Site Plan (Logged 7h 15m). Switch to Weekly (3) for approval, or click Project.",
+          points: [],
           holes: [
-            { x: 128, y: 152, w: 1424, h: 324, n: 1, label: "Reported Entries Mapped (1h 56m & 2h 4m)" },
-            { x: 128, y: 498, w: 1424, h: 345, n: 2, label: "Unreported Entries Mapped (2h 30m & 1h)", markerX: 520, markerY: 498 }
+            { x: 112, y: 212, w: 1478, h: 332, n: 1, label: "Reported Mapped (Edge 1h · Revit 2h)", markerX: 480, markerY: 204 },
+            { x: 112, y: 556, w: 1478, h: 334, n: 2, label: "Unreported Mapped (AutoCAD 2h · Bluebeam 2h 15m)", markerX: 480, markerY: 548 },
+            { x: 1738, y: 84, w: 62, h: 30, n: 3, label: "Weekly View", markerX: 1582, markerY: 120 }
           ],
-          callout: { x: 1500, y: 515, w: 390 },
+          notesAbove: [
+            { x: 1742, y: 60, text: "You can send for approval to PMs from here" }
+          ],
+          pulses: [{ x: 14, y: 232, w: 58, h: 76 }],
+          hotspots: [{ x: 14, y: 232, w: 58, h: 76, title: "Click Project" }],
+          callout: { x: 1628, y: 500, w: 278 },
           cursor: { x: 750, y: 615 },
-          nextLabel: "View Updated Summary"
-        },
-
-        /* 27. Updated Timesheet Summary at Top (Details of Timesheet.png) */
-        {
-          screen: "tsDetails",
-          tag: "Timesheet Summary",
-          title: "Updated Hours Summary",
-          body: "Total Logged & Billable Hours update to 7.5h, with Unallocated Hours reduced to 1.4h.",
-          points: [
-            "1. 7.5 Logged & Billable Hours · 6.3 Screen Hours",
-            "2. Project Total: Logged 7h 30m · Screen 6h 14m"
-          ],
-          holes: [
-            { x: 119, y: 160, w: 1464, h: 92, n: 1, label: "Updated Timesheet Summary (7.5h Logged)" },
-            { x: 119, y: 328, w: 1464, h: 61, n: 2, label: "Project Total: Logged 7h 30m · Screen 6h 14m" }
-          ],
-          callout: { x: 780, y: 530, w: 385 },
-          cursor: { x: 520, y: 210 },
-          nextLabel: "Next: Weekly Approval"
-        },
-
-        /* 28. Weekly View for Manager Approval (Details of Timesheet.png) */
-        {
-          screen: "tsDetails",
-          tag: "Weekly Approval",
-          title: "3. Weekly View & Manager Approval",
-          body: "You can switch to the Weekly view to submit the timesheet for Project Manager approval. Next, click Project on the sidebar to view synced hours on the workplan.",
-          points: [
-            "Weekly view lets managers review & approve timesheets",
-            "Click Project on the left sidebar to open the Workplan"
-          ],
-          holes: [
-            { x: 1722, y: 90, w: 72, h: 36, n: 3, label: "Weekly View" }
-          ],
-          pulses: [{ x: 18, y: 274, w: 68, h: 72 }],
-          hotspots: [{ x: 18, y: 274, w: 68, h: 72, title: "Click Project" }],
-          callout: { x: 1320, y: 160, w: 395 },
-          cursor: { x: 1650, y: 108 },
           nextLabel: "Go to Project",
-          next: async () => { await moveTo(52, 310); await click(); }
+          next: async () => { await moveTo(43, 270); await click(); }
         },
 
-        /* 29. Workplan Builder (Workplan builder.png) – In Progress & Click on Architectural Site Plan */
+        /* 16. Workplan Builder (Workplan builder.png) – Keep previous 1 & 2 outlines + mouse movement to Team tab */
         {
           screen: "workplanBuilder",
           tag: "Project Workplan",
           title: "Workplan Status Updated to In Progress",
-          body: "Stage A and 30% Schematic Design update to In Progress, and Architectural Site Plan turns active. Click the task to inspect synced hours.",
-          points: [
-            "1. Stage A & Milestone status updated to In Progress",
-            "2. Click Architectural Site Plan (10h · Active)"
-          ],
+          body: "Stage A and 30% Schematic Design update to In Progress (1), and Architectural Site Plan turns active (2). Click Team to view rolled-up hours.",
+          points: [],
           holes: [
             { x: 100, y: 356, w: 326, h: 108, n: 1, label: "Stage A & Milestone: In Progress" },
             { x: 112, y: 478, w: 424, h: 24, n: 2, label: "Architectural Site Plan (10h · Active)", markerX: 552, markerY: 490 }
           ],
-          pulses: [{ x: 110, y: 476, w: 318, h: 26 }],
-          hotspots: [{ x: 108, y: 474, w: 428, h: 30, title: "Click Architectural Site Plan" }],
+          pulses: [{ x: 234, y: 116, w: 46, h: 28 }],
+          hotspots: [{ x: 232, y: 114, w: 50, h: 32, title: "Click Team tab" }],
           callout: { x: 1120, y: 430, w: 390 },
           cursor: { x: 520, y: 489 },
-          nextLabel: "Open Task View",
-          next: async () => { await moveTo(185, 489); await click(); }
+          nextLabel: "Open Project Team",
+          next: async () => { await moveTo(257, 130); await click(); }
         },
 
-        /* 34. Task Details (task details.png) – Outline 1: Actual Hours of Task */
-        {
-          screen: "taskDetails",
-          tag: "Task View · 1",
-          title: "1. Task Actual Hours",
-          body: "Task View displays the total assigned hours alongside the actual hours logged from approved timesheets.",
-          points: [
-            "10 hrs Assigned · 12.5 hrs actual (Tony 5h + Rachel 7.5h)"
-          ],
-          holes: [
-            { x: 1122, y: 165, w: 168, h: 80, n: 1, label: "Task Actual Hours (12.5 hrs)" }
-          ],
-          callout: { x: 1180, y: 575, w: 390 },
-          cursor: { x: 1200, y: 210 },
-          nextLabel: "Next"
-        },
-
-        /* 35. Task Details (task details.png) – Outline 2: Rachel Zane's Actual Hours */
-        {
-          screen: "taskDetails",
-          tag: "Task View · 2",
-          title: "2. Rachel's Actual Hours from Timesheet",
-          body: "Under Task Hours & Allocation, Rachel Zane's approved timesheet hours (7.5 hrs) are automatically reflected.",
-          points: [
-            "Rachel Zane (Jr. Architect): 5 hrs Assigned · 7.5 hrs Actual"
-          ],
-          holes: [
-            { x: 1388, y: 336, w: 492, h: 66, n: 2, label: "Rachel's Actual Hours (7.5 hrs)" }
-          ],
-          callout: { x: 1180, y: 575, w: 390 },
-          cursor: { x: 1640, y: 368 },
-          nextLabel: "Project Team View"
-        },
-
-        /* 42. Project Team Dashboard (Project Team Dashboard Updated.png) – Outline 1: Actual Hours Rollup */
+        /* 17. Project Team Dashboard (combined 19 & 20 + Add member) -> click Documents */
         {
           screen: "teamDashboard",
-          tag: "Project Team · 1",
-          title: "1. Project & Stage Actual Hours",
-          body: "In the Project Team tab, approved timesheet hours automatically roll up into the project and stage actuals.",
-          points: [
-            "48.00 hr Assigned · 12.50 hr Total Actual (Tony 5h + Rachel 7.5h)"
-          ],
+          tag: "Project Team",
+          title: "Actual Hours, Progress & Add Member",
+          body: "Approved timesheet hours roll up into project & stage actuals (1–2) and member progress rates (3). Click Add member (4) to add talent, or open Documents (5).",
+          points: [],
           holes: [
             { x: 112, y: 192, w: 1678, h: 66, n: 1, label: "Project Actual Hours (12.50 hr)" },
-            { x: 122, y: 566, w: 528, h: 42, n: 2, label: "Stage A Actual: 12.50 hr / 48.00 hr Allocated" }
-          ],
-          callout: { x: 740, y: 470, w: 390 },
-          cursor: { x: 1320, y: 225 },
-          nextLabel: "Next: Progress Rate"
-        },
-
-        /* 43. Project Team Dashboard – Outline 2: Progress Rate Updated from Timesheet -> click Documents */
-        {
-          screen: "teamDashboard",
-          tag: "Project Team · 2",
-          title: "2. Progress Rate Updated from Timesheet",
-          body: "Each member's Progress Rate and Task Status update automatically as timesheets are filled and approved.",
-          points: [
-            "Tony Stark: 5.00 / 29.00 hr → 17.24% Progress (On Track)",
-            "Rachel Zane: 7.50 / 19.00 hr → 39.47% Progress (On Track)"
-          ],
-          holes: [
-            { x: 825, y: 660, w: 325, h: 168, n: 1, label: "Actual Hours & Progress Rate" },
-            { x: 302, y: 126, w: 78, h: 26, n: 2, label: "Documents Tab", markerX: 392, markerY: 138 }
+            { x: 122, y: 566, w: 528, h: 42, n: 2, label: "Stage A Actual: 12.50 / 48.00 hr" },
+            { x: 825, y: 660, w: 325, h: 168, n: 3, label: "Actual Hours & Progress Rate" },
+            { x: 1598, y: 562, w: 96, h: 36, n: 4, label: "Add Member", markerX: 1465, markerY: 580 },
+            { x: 302, y: 126, w: 78, h: 26, n: 5, label: "Documents Tab", markerX: 392, markerY: 138 }
           ],
           pulses: [{ x: 302, y: 126, w: 78, h: 26 }],
           hotspots: [{ x: 300, y: 124, w: 82, h: 30, title: "Click Documents tab" }],
-          callout: { x: 740, y: 405, w: 395 },
+          callout: { x: 740, y: 415, w: 405 },
           cursor: { x: 1020, y: 800 },
           nextLabel: "Open Documents",
           next: async () => { await moveTo(341, 139); await click(); }
@@ -1314,7 +1050,7 @@
             "Live Trackers tab: upload live Excel, DOCX, or PPTX links"
           ],
           holes: [
-            { x: 125, y: 352, w: 504, h: 220, n: 1, label: "Shared Folders & Teammate Access", markerX: 332, markerY: 350 }
+            { x: 125, y: 332, w: 504, h: 240, n: 1, label: "Shared Folders & Teammate Access", markerX: 332, markerY: 330 }
           ],
           notesAbove: [
             { x: 335, y: 192, text: "Live Trackers: Upload live Excel, DOCX, or PPTX links here" }
@@ -1382,7 +1118,7 @@
         const s = SCREENS[currentScreen || "projects"];
         const aspect = s.w / effH(s);
         const availW = viewport.clientWidth - 48;
-        const availH = viewport.clientHeight - 48 - CHROME_H;
+        const availH = viewport.clientHeight - 18 - CHROME_H;
         const width = Math.max(320, Math.min(availW, availH * aspect));
         frame.style.width = width + "px";
         stage.style.width = width + "px";
@@ -1570,6 +1306,7 @@
         const p = document.createElement("p");
         p.textContent = scene.body;
         const ul = document.createElement("ul");
+        if (scene.cols) ul.className = "cols";
         scene.points.forEach((t) => { const li = document.createElement("li"); li.textContent = t; ul.appendChild(li); });
 
         const actions = document.createElement("div");
